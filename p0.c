@@ -1,51 +1,40 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-void printPrompt(){
+
+#define MAX_COMMAND_LENGHT 4096
+#define MAX_HISTORY 4096
+
+char *history[MAX_HISTORY];
+int historyCount=0;
+
+void imprimirPrompt(){
     printf("# ");
 }
 
-void readInput(char *input){
-
-    fgets(input,sizeof(input), stdin);
+void leerComando(char *comando) {
+    imprimirPrompt();
+    fgets(comando, MAX_COMMAND_LENGHT, stdin);
+    comando[strcspn(comando, "\n")] = '\0'; // Eliminar el salto de línea
 }
 
-
-void createHistoric(char* historic){
-    for (int i = 0; i < 4096; ++i) {
-        historic[i] = -1;
+void addHistoric (char *comando){
+    if (historyCount < MAX_HISTORY){
+        history[historyCount] = strdup(comando);
+        historyCount++;
+    }else{
+        printf("Error: History Full\n");
     }
 
 }
 
-void printHistoric(char *historic){
-    int i=0;
+int main(){
+    char comando[MAX_COMMAND_LENGHT];
 
-    while (historic[i] != -1){
-        printf("%s", &historic[i]);
-        i++;
-    }
+    leerComando(comando);
+    addHistoric(comando);
 
-}
-
-void addHistoric(char *historic, char command){
-    int i=0;
-
-    while (historic[i] != -1){
-        i++;
-    }
-
-    historic[i] = command;
-}
-
-
-
-
-int main (){
-    char input[50];
-    char historic[4096];
-    createHistoric(historic);
-
-    printf("%s", &historic[0]);
-
+    
     return 0;
 }
