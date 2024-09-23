@@ -6,5 +6,5 @@ void imprimirPrompt(){
 }
 
 void authors(){
-    printf("Ángela García Sanchez (angela.gsanchez@udc.es)\nXabier Guitián López (x.guitian@udc.es)\n");
+    printf("Ángela García Sánchez (angela.gsanchez@udc.es)\nXabier Guitián López (x.guitian@udc.es)\n");
 }
