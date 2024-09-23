@@ -1,10 +1,7 @@
-//
-// Created by angela on 23/09/24.
-//
-void imprimirPrompt(){
-    printf("# ");
-}
+//BORRADORES
 
-void authors(){
-    printf("Ángela García Sánchez (angela.gsanchez@udc.es)\nXabier Guitián López (x.guitian@udc.es)\n");
+void createHistoric(char* historic){
+    for (int i = 0; i < 4096; ++i) {
+        historic[i] = -1;
+    }
 }

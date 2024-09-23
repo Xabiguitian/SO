@@ -28,15 +28,16 @@ bool insertItem(tItem d, tPos p, tList *L) {
     }
 }
 
-void deleteAtPosition(tPos p, tList *L){
+void deleteAtPosition(tPos p, tList *L) {
     tPos i;
     L->lastPos--;
 
-    for(i=p;i<=L->lastPos;i++)
-    {
-        L->data[i]=L->data[i + 1];
+    for (i = p; i <= L->lastPos; i++) {
+        L->data[i] = L->data[i + 1];
 
+    }
 }
+
 bool isEmptyList(tList L){
         return (L.lastPos==NULL);
     }

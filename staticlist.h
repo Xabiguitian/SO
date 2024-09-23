@@ -11,7 +11,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#define NULL (-1)
+#define NULL -1
 #define MAX 25
 
 typedef int tPos;

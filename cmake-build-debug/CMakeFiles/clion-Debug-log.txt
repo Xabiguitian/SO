@@ -1,1 +1,0 @@
-CMakeLists.txt not found in /Users/mac1/Library/CloudStorage/OneDrive-UniversidadedaCoruña/2º GEI/1 cuatri/Sistemas Operativos/Práctica/SO_p0 Select CMakeLists.txt
