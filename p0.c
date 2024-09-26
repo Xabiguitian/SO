@@ -198,12 +198,6 @@ void cmddate(char *trozos[]){
     if(strcmp(trozos[1], "-d")==0){
 
 
-
-
-
-
-
-
       }else if(strcmp(trozos[1], "-t")==0) {
 
 
