@@ -7,8 +7,6 @@
 #include <sys/utsname.h>
 
 
-
-
 //CONSTANTES DEFINIDAS
 #define MAX 1024
 #define MAXIMUNT 3
@@ -68,11 +66,8 @@ void leerComando(char *command) {
 }
 
 
-
-
 //FUNCIÓN PARA TROCEAR LA CADENA
-int TrocearCadena(char * cadena, char * trozos[])
-{
+int TrocearCadena(char * cadena, char * trozos[]){
     int i=1;
     if ((trozos[0]=strtok(cadena," \n\t"))==NULL)
         return 0;
@@ -80,8 +75,6 @@ int TrocearCadena(char * cadena, char * trozos[])
         i++;
     return i;
 }
-
-
 
 
 //FUNCIÓNES PARA PROCESAR LOS COMANDOS
@@ -101,7 +94,7 @@ void processCommand(char *command, tList *historial, char * trozos[]) {
     }else if(strcmp(command,"open")==0) {
         cmdopen();
     }else if(strcmp(command, "dup")==0) {
-        //cmddup();
+        cmddup();
     }else if(strcmp(command, "close")==0) {
         cmdclose(trozos);
     }else if(strcmp(command,"infosys")==0) {
@@ -318,27 +311,48 @@ void cmdclose(char *trozos[]){
     }
 }
 
-void cmdopen(){
+void cmdopen (char * tr[])
+{
+    int i,df, mode=0;
 
-}
+    if (tr[0]==NULL) { /*no hay parametro*/
+        ..............ListarFicherosAbiertos...............
+        return;
+    }
+    for (i=1; tr[i]!=NULL; i++)
+        if (!strcmp(tr[i],"cr")) mode|=O_CREAT;
+        else if (!strcmp(tr[i],"ex")) mode|=O_EXCL;
+        else if (!strcmp(tr[i],"ro")) mode|=O_RDONLY;
+        else if (!strcmp(tr[i],"wo")) mode|=O_WRONLY;
+        else if (!strcmp(tr[i],"rw")) mode|=O_RDWR;
+        else if (!strcmp(tr[i],"ap")) mode|=O_APPEND;
+        else if (!strcmp(tr[i],"tr")) mode|=O_TRUNC;
+        else break;
+
+    if ((df=open(tr[0],mode,0777))==-1)
+        perror ("Imposible abrir fichero");
+    else{
+        ...........AnadirAFicherosAbiertos (descriptor...modo...nombre....)....
+        printf ("Anadida entrada a la tabla ficheros abiertos..................",......);
+    }
+
 
 
 
 
 //Duplica el descriptor del archivo df (usando la llamada al sistema dup, creando el
 //nueva entrada correspondiente en la lista de archivos
-/*void cmddup(char * trozos[]){
-int df, duplicado;
-char aux[MAXNAME],*p;
+void cmddup(char * trozos[]){
+    int df, duplicado;
+    char aux[MAXNAME],*p;
 
-if (trozos[0]==NULL || (df=atoi(trozos[0]))<0) { no hay parametro
-    ListOpenFiles(-1);                 o el descriptor es menor que 0
-    return;
-}
+    if (trozos[0]==NULL || (df=atoi(trozos[0]))<0) { no hay parametro
+        ListOpenFiles(-1);                 //o el descriptor es menor que 0
+        return;
+    }
 
-duplicado=dup(df);
-p=.....NombreFicheroDescriptor(df).......;
-sprintf (aux,"dup %d (%s)",df, p);
-//.......AnadirAFicherosAbiertos......duplicado......aux.....fcntl(duplicado,F_GETFL).....;
+    duplicado=dup(df);
+    p=.....NombreFicheroDescriptor(df).......;
+    sprintf (aux,"dup %d (%s)",df, p);
+    //.......AnadirAFicherosAbiertos......duplicado......aux.....fcntl(duplicado,F_GETFL).....;
 }
-}*/
