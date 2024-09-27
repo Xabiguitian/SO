@@ -1,7 +1,3 @@
-//
-// Created by angela on 24/09/24.
-//
-
 #include "historial.h"
 
 
