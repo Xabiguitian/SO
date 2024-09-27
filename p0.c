@@ -93,11 +93,11 @@ void processCommand(char *command, tList *historial, char * trozos[]) {
     }else if(strcmp(command,"date")==0){
         cmddate(trozos);
     }else if(strcmp(command,"open")==0) {
-        cmdopen();
+        //cmdopen();
     }else if(strcmp(command, "dup")==0) {
-        cmddup();
+        //cmddup();
     }else if(strcmp(command, "close")==0) {
-        cmdclose(trozos);
+        //cmdclose(trozos);
     }else if(strcmp(command,"infosys")==0) {
         infosys();
     }else if(strcmp(command,"help")==0) {
@@ -195,19 +195,67 @@ void cmddate(char *trozos[]){
     int minutos = tm_info->tm_min;
     int segundos = tm_info->tm_sec;
 
-
-
     if (trozos[1]==NULL){
-        printf("%d/%d/%d\n",dia , mes ,ano);
-        printf("%d:%d:%d\n", horas, minutos, segundos);
+        printf("Fecha: ");
+        if(dia<10 && mes <10){
+            printf("0%d/0%d/%d\n",dia , mes ,ano);
+        }else if (dia <10){
+            printf("0%d/%d/%d\n",dia , mes ,ano);
+        }else if (mes <10){
+            printf("%d/0%d/%d\n",dia , mes ,ano);
+        }else {
+            printf("%d/%d/%d\n", dia, mes, ano);
+        }
+
+        printf("Hora: ");
+        if(horas<10 && minutos <10 && segundos<10){
+            printf("0%d:0%d:0%d\n", horas, minutos, segundos);
+        }else if(horas<10 && minutos <10){
+            printf("0%d:0%d:%d\n", horas, minutos, segundos);
+        }else if(horas<10 && segundos<10){
+            printf("0%d:%d:0%d\n", horas, minutos, segundos);
+        }else if(minutos <10 && segundos<10){
+            printf("%d:0%d:0%d\n", horas, minutos, segundos);
+        }else if (horas <10){
+            printf("0%d:%d:%d\n",horas , minutos ,segundos);
+        }else if (minutos <10){
+            printf("%d:0%d:%d\n",horas , minutos ,segundos);
+        }else if(segundos<10){
+            printf("%d:%d:0%d\n", horas, minutos, segundos);
+        }else {
+            printf("%d:%d:%d\n", horas, minutos, segundos);
+        }
 
     }else if(strcmp(trozos[1], "-d")==0 ){
-
-        printf("%d/%d/%d\n",dia , mes ,ano);
+        printf("Fecha: ");
+        if(dia<10 && mes <10){
+            printf("0%d/0%d/%d\n",dia , mes ,ano);
+        }else if (dia <10){
+            printf("0%d/%d/%d\n",dia , mes ,ano);
+        }else if (mes <10){
+            printf("%d/0%d/%d\n",dia , mes ,ano);
+        }else {
+            printf("%d/%d/%d\n", dia, mes, ano);
+        }
     }else if(strcmp(trozos[1], "-t")==0 ) {
-
-        printf("%d:%d:%d\n", horas, minutos, segundos);
-
+        printf("Hora: ");
+        if(horas<10 && minutos <10 && segundos<10){
+            printf("0%d:0%d:0%d\n", horas, minutos, segundos);
+        }else if(horas<10 && minutos <10){
+            printf("0%d:0%d:%d\n", horas, minutos, segundos);
+        }else if(horas<10 && segundos<10){
+            printf("0%d:%d:0%d\n", horas, minutos, segundos);
+        }else if(minutos <10 && segundos<10){
+            printf("%d:0%d:0%d\n", horas, minutos, segundos);
+        }else if (horas <10){
+            printf("0%d:%d:%d\n",horas , minutos ,segundos);
+        }else if (minutos <10){
+            printf("%d:0%d:%d\n",horas , minutos ,segundos);
+        }else if(segundos<10){
+            printf("%d:%d:0%d\n", horas, minutos, segundos);
+        }else {
+            printf("%d:%d:%d\n", horas, minutos, segundos);
+        }
 
     }else{
         printf("No se reconoce el comando. \n");
@@ -297,15 +345,15 @@ void off(){
 
 
 
-
+/*
 
 
 //Cierra el descriptor del archivo df y elimina el elemento correspondiente de la lista
 void cmdclose(char *trozos[]){
     int df;
 
-    if (trozos[0]==NULL || (df=atoi(trozos[0]))<0) { /*no hay parametro*/
-        //..............ListarFicherosAbiertos............... /*o el descriptor es menor que 0*/
+    if (trozos[0]==NULL || (df=atoi(trozos[0]))<0) { //no hay parametro
+        //..............ListarFicherosAbiertos............... //o el descriptor es menor que 0
         return;
     }
 
@@ -321,7 +369,7 @@ void cmdopen (char * tr[])
 {
     int i,df, mode=0;
 
-    if (tr[0]==NULL) { /*no hay parametro*/
+    if (tr[0]==NULL) { //no hay parametro
         ..............ListarFicherosAbiertos...............
         return;
     }
@@ -361,4 +409,4 @@ void cmddup(char * trozos[]){
     p=.....NombreFicheroDescriptor(df).......;
     sprintf (aux,"dup %d (%s)",df, p);
     //.......AnadirAFicherosAbiertos......duplicado......aux.....fcntl(duplicado,F_GETFL).....;
-}
+}*/
