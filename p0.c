@@ -350,17 +350,12 @@ void off(){
 
 
 
-
-
-/*
-
-
 //Cierra el descriptor del archivo df y elimina el elemento correspondiente de la lista
 void cmdclose(char *trozos[]){
     int df;
 
-    if (trozos[0]==NULL || (df=atoi(trozos[0]))<0) { //no hay parametro
-        //..............ListarFicherosAbiertos............... //o el descriptor es menor que 0
+    if (trozos[0]==NULL || (df=atoi(trozos[0]))<0) { /*no hay parametro*/
+        //..............ListarFicherosAbiertos............... /*o el descriptor es menor que 0*/
         return;
     }
 
@@ -388,7 +383,7 @@ void cmdopen (char * tr[])
 {
     int i,df, mode=0;
 
-    if (tr[0]==NULL) { //no hay parametro
+    if (tr[0]==NULL) { /*no hay parametro*/
         ..............ListarFicherosAbiertos...............
         return;
     }
@@ -428,4 +423,4 @@ void cmddup(char * trozos[]){
     p=.....NombreFicheroDescriptor(df).......;
     sprintf (aux,"dup %d (%s)",df, p);
     //.......AnadirAFicherosAbiertos......duplicado......aux.....fcntl(duplicado,F_GETFL).....;
-}*/
+}
