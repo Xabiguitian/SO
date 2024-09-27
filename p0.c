@@ -6,24 +6,17 @@
 #include <time.h>
 #include <sys/utsname.h>
 #include <stdio.h>
+#include <string.h>
 
 
 //CONSTANTES DEFINIDAS
-#define MAX 1024
-#define MAXIMUNT 3
-
-//DEFINICIÓN DE OBJETOS
-typedef struct{
-  char *nameF;
-  int mode;
-  int descript;
-}listaFicheros;
+#define MAXIMUN 4
 
 
 //INDICE DE FUNCIONES DE LOS COMANDOS
 void imprimirPrompt();
 void leerComando(char *command);
-void processCommandTrocearCadena(char command[],tList *historial, char * trozos[]);
+void processCommandTrocearCadena(char command[],historic *historial, char * trozos[]);
 
 // COMANDOS P0
 void authors(char *trozos[]);
@@ -35,9 +28,9 @@ void cmdopen();
 //void cmddup();
 void infosys();
 void off();
-void cmdhistoric(char *trozos[], tList * historial);
+void cmdhistoric(char *trozos[], historic * historial);
 void cmdclose(char *trozos[]);
-void help(tList *historial, char * trozos[]);
+void help(historic *historial, char * trozos[]);
 
 
 
@@ -48,10 +41,10 @@ int main()
 {
     char command[MAXIMUN];
     char *trozos;
-    tList historial;
+    historic historial;
 
 
-    createEmptyListH(&historial);
+    createEmptyList(&historial);
 
     while(true) {
         imprimirPrompt();
@@ -86,7 +79,7 @@ int TrocearCadena(char * cadena, char * trozos[]){
 
 
 //FUNCIÓNES PARA PROCESAR LOS COMANDOS
-void processCommand(char *command, tList *historial, char * trozos[]) {
+void processCommand(char *command, historic *historial, char * trozos[]) {
     command=trozos[0];
 
     if(strcmp(command, "authors")==0) {
@@ -119,17 +112,17 @@ void processCommand(char *command, tList *historial, char * trozos[]) {
 
 
 
-void processCommandTrocearCadena(char command[],tList *historial, char * trozos[]) {
+void processCommandTrocearCadena(char command[],historic *historial, char * trozos[]) {
     char *comdau=malloc(sizeof(*command)); //Creacion de una variable auxiliar para evitar perder
     // la información del comando
     strcpy(comdau,command);
 
-    insertItemH(comdau,historial);
+    insertItem(comdau,historial);
     TrocearCadena(comdau, trozos);
     processCommand(command,historial, trozos);
 
 
-    free(comdau);
+    free(comdau); //MIRAR SI AQUI HAY QUE HACER UN NULL DESPUÉS DEL FREE!!
 }
 
 
@@ -273,19 +266,20 @@ void cmddate(char *trozos[]){
 
 
 //FUNCIÓN QUE MUESTRA EL HISTORIAL DEL SHELL
-void cmdhistoric(char *trozos[],tList * historial){
+void cmdhistoric(char *trozos[],historic * historial){
     int i;
     int N = strtol(trozos[1], NULL, 10);
     if(trozos[1]==NULL){
-        for(i=0;i<last(*historial);i++){
-            printf("%c\n",  getItemH(i,*historial));
+        for(i=0;i<historial->lastPos;i++){
+
+            printf("%c\n", getItem(i,*historial));
         }
     }else if(strcmp(trozos[1],"-")==0){
-        for(i=N;i<last(*historial);i++){
-            printf("%c\n",getItemH(i,*historial));
+        for(i=N;i<historial->lastPos;i++){
+            printf("%c\n", getItem(i,*historial));
         }
     }else { // N solo
-        printf("%c\n",getItemH(N,*historial));
+        printf("%c\n", getItem(N,*historial));
         /*}else{
             printf("No se reconoce el comando.\n");*/
     }
@@ -294,7 +288,7 @@ void cmdhistoric(char *trozos[],tList * historial){
 
 //ayuda muestra una lista de comandos disponibles. ayuda cmd da una breve ayuda
 //sobre el uso del comando cmd
-void help(tList *historial, char * trozos[]){
+void help(historic *historial, char * trozos[]){
     if(trozos[1]==NULL){
         printf("Comandos disponibles: ...\n");
     }
@@ -350,12 +344,17 @@ void off(){
 
 
 
+
+
+/*
+
+
 //Cierra el descriptor del archivo df y elimina el elemento correspondiente de la lista
 void cmdclose(char *trozos[]){
     int df;
 
-    if (trozos[0]==NULL || (df=atoi(trozos[0]))<0) { /*no hay parametro*/
-        //..............ListarFicherosAbiertos............... /*o el descriptor es menor que 0*/
+    if (trozos[0]==NULL || (df=atoi(trozos[0]))<0) { //no hay parametro
+        //..............ListarFicherosAbiertos............... //o el descriptor es menor que 0
         return;
     }
 
@@ -367,23 +366,11 @@ void cmdclose(char *trozos[]){
     }
 }
 
-//FUNCIONES AUXILIARES PARA OPEN
-void listFiles(char trozos[], listaFicheros *listaficheros){
-
-
-
-  }
-
-  void insertFiles(){
-    }
-
-
-//Abre un archivo y lo agrega (junto con el descriptor del archivo y el modo de apertura a la lista de archivos abiertos de shell
 void cmdopen (char * tr[])
 {
     int i,df, mode=0;
 
-    if (tr[0]==NULL) { /*no hay parametro*/
+    if (tr[0]==NULL) { //no hay parametro
         ..............ListarFicherosAbiertos...............
         return;
     }
@@ -423,4 +410,4 @@ void cmddup(char * trozos[]){
     p=.....NombreFicheroDescriptor(df).......;
     sprintf (aux,"dup %d (%s)",df, p);
     //.......AnadirAFicherosAbiertos......duplicado......aux.....fcntl(duplicado,F_GETFL).....;
-}
+}*/
