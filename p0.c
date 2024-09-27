@@ -22,7 +22,7 @@ void processCommandTrocearCadena(char command[],historic *historial, char * troz
 void authors(char *trozos[]);
 void pid();
 void ppid();
-void cd(char * trozos[]);
+void cd(char trozos[]);
 void cmddate(char * trozos[]);
 void cmdopen();
 //void cmddup();
@@ -89,7 +89,7 @@ void processCommand(char *command, historic *historial, char * trozos[]) {
     }else if(strcmp(command,"ppid")==0) {
         ppid();
     }else if(strcmp(command,"cd")==0) {
-        cd(trozos);
+        cd(*trozos);
     }else if(strcmp(command,"date")==0){
         cmddate(trozos);
     }else if(strcmp(command,"open")==0) {
@@ -164,22 +164,21 @@ void ppid(){
 
 //Cambia el directorio de trabajo actual del shell a dir .Cuando se invoca sin aumentos, imprime el
 // directorio de trabajo actual .
-void cd(char * trozos[]){
+void cd(char trozos[]){
     char cwd[MAXIMUN];
 
-    if(trozos[1]==NULL){
+    if(trozos[1]==HNULL){
         if(getcwd(cwd,sizeof cwd)!=NULL){
             printf("%s\n",cwd);
         }else{
             printf("No se puede mostrar el directorio\n");
         }
     }else{
-        if(chdir(trozos[1])!=0)
+        if(chdir(&trozos[1])!=0)
             perror("No se puede mostrar el directorio\n");
     }
 }
 //HECHA MAS O MENOS LA FUNCIÓN DE CD!!!!
-
 
 
 
