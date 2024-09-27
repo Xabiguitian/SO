@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #include <time.h>
 #include <sys/utsname.h>
+#include <stdio.h>
 
 
 
@@ -195,21 +196,26 @@ void cd(char * trozos[]){
 void cmddate(char *trozos[]){
     time_t t=time(NULL);
     struct tm *tm_info = localtime(&t);
+    int dia = tm_info->tm_mday;
+    int mes = tm_info->tm_mon+1;
+    int ano = tm_info->tm_year+1900;  int horas = tm_info->tm_hour;
+    int minutos = tm_info->tm_min;
+    int segundos = tm_info->tm_sec;
 
-    if(strcmp(trozos[1], "-d")==0 || trozos[1] == NULL){
-        int dia = tm_info->tm_mday;
-        int mes = tm_info->tm_mon+1;
-        int ano = tm_info->tm_year+1900;
+
+
+    if (trozos[1]==NULL){
         printf("%d/%d/%d\n",dia , mes ,ano);
-    }else if(strcmp(trozos[1], "-t")==0 || trozos[1] == NULL) {
-        int horas = tm_info->tm_hour;
-        int minutos = tm_info->tm_min;
-        int segundos = tm_info->tm_sec;
+        printf("%d:%d:%d\n", horas, minutos, segundos);
+
+    }else if(strcmp(trozos[1], "-d")==0 ){
+
+        printf("%d/%d/%d\n",dia , mes ,ano);
+    }else if(strcmp(trozos[1], "-t")==0 ) {
 
         printf("%d:%d:%d\n", horas, minutos, segundos);
 
-    }else if (trozos[1]==NULL){
-        printf("No se reconoce el comando. \n");
+
     }else{
         printf("No se reconoce el comando. \n");
     }
