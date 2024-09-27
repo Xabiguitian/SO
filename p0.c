@@ -278,14 +278,14 @@ void cmdhistoric(char *trozos[],tList * historial){
     int N = strtol(trozos[1], NULL, 10);
     if(trozos[1]==NULL){
         for(i=0;i<last(*historial);i++){
-            printf("%s\n",  getItemH(i,*historial));
+            printf("%c\n",  getItemH(i,*historial));
         }
     }else if(strcmp(trozos[1],"-")==0){
         for(i=N;i<last(*historial);i++){
-            printf("%s\n",getItemH(i,*historial));
+            printf("%c\n",getItemH(i,*historial));
         }
     }else { // N solo
-        printf("%s\n",getItemH(N,*historial));
+        printf("%c\n",getItemH(N,*historial));
         /*}else{
             printf("No se reconoce el comando.\n");*/
     }
