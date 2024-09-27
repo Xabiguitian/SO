@@ -1,5 +1,6 @@
-all: historial.o p0.c
-	gcc $(CFLAGS) -o p0 p0.c *.o
+all: historial.c historial.h p0.c
+	gcc -Wall p0.c historial.c historial.h
+	./a.out
 
 historic.o: historial.c historial.h
 	gcc $(CFLAGS) -c historial.c

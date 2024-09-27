@@ -2,7 +2,7 @@
 // Created by angela on 24/09/24.
 //
 
-#include <historial.h>
+#include "historial.h"
 
 
 //FUNCIONES AUXILIARES PARA EL HISTORIAL

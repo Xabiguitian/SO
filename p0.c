@@ -1,5 +1,5 @@
 //LIBRERÍAS IMPLEMENTADAS
-#include <historial.c>
+#include "historial.c"
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -211,7 +211,8 @@ void cmddate(char *trozos[]){
 
 //FUNCIÓN QUE MUESTRA EL HISTORIAL DEL SHELL
 	void cmdhistoric(char *trozos[],tList historial){
-		int i,N;
+		int i;
+        int N=0;
           if(*trozos[1]==NULLH){
             for(i=0;i<last(historial);i++){
 
