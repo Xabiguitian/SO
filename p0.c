@@ -12,6 +12,13 @@
 #define MAX 1024
 #define MAXIMUNT 3
 
+//DEFINICIÓN DE OBJETOS
+typedef struct{
+  char *nameF;
+  int mode;
+  int descript;
+}listaFicheros;
+
 
 //INDICE DE FUNCIONES DE LOS COMANDOS
 void imprimirPrompt();
@@ -122,7 +129,7 @@ void processCommandTrocearCadena(char command[],tList *historial, char * trozos[
     processCommand(command,historial, trozos);
 
 
-    free(comdau); //MIRAR SI AQUI HAY QUE HACER UN NULL DESPUÉS DEL FREE!!
+    free(comdau);
 }
 
 
@@ -317,6 +324,18 @@ void cmdclose(char *trozos[]){
     }
 }
 
+//FUNCIONES AUXILIARES PARA OPEN
+void listFiles(char trozos[], listaFicheros *listaficheros){
+
+
+
+  }
+
+  void insertFiles(){
+    }
+
+
+//Abre un archivo y lo agrega (junto con el descriptor del archivo y el modo de apertura a la lista de archivos abiertos de shell
 void cmdopen (char * tr[])
 {
     int i,df, mode=0;
