@@ -410,3 +410,12 @@ void cmdopen(){
     //.......AnadirAFicherosAbiertos......duplicado......aux.....fcntl(duplicado,F_GETFL).....;
 }
     }*/
+
+
+void makefile(char *trozos[]){
+    FILE *file = fopen(trozos[1], "w");
+
+        if (file == NULL) {
+            printf("Error al crear el archivo %s\n", trozos[1]);
+        }
+}
