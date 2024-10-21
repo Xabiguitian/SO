@@ -37,7 +37,8 @@ void cmdhistoric(char *trozos[], tList * historial);
 void cmdclose(char *trozos[]);
 void help(tList *historial, char * trozos[]);
 
-
+//P1
+void makefile(char *trozos[]);
 
 
 
@@ -115,6 +116,8 @@ void processCommand(char *command, tList *historial, char * trozos[]) {
         off();
     }else if(strcmp(command,"historic")==0) {
         cmdhistoric(trozos,historial);
+    }else if (strcmp(command,"makefile")==0){
+        makefile(trozos);
     }else
         printf("No se reconoce el comando.\n");
 }
@@ -413,9 +416,20 @@ void cmdopen(){
 
 
 void makefile(char *trozos[]){
+
+
+    if (trozos[1] == NULL) {
+       printf("Error al crear el archivo %s\n", trozos[1]);
+    }
+
     FILE *file = fopen(trozos[1], "w");
 
-        if (file == NULL) {
-            printf("Error al crear el archivo %s\n", trozos[1]);
-        }
+    if (file == NULL) {
+      perror("Error al abrir el archivo");
+      return;
+    }
+
+    printf("Archivo %s creado exitosamente\n", trozos[1]);
+    fclose(file);
+
 }
