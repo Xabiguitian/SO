@@ -8,9 +8,12 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <time.h>
+#include <pwd.h>
+#include <grp.h>
 #include <sys/utsname.h>
-
-
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <dirent.h>
 
 
 //CONSTANTES DEFINIDAS
@@ -39,6 +42,11 @@ void help(tList *historial, char * trozos[]);
 
 //P1
 void makefile(char *trozos[]);
+void makedir(char *trozos[]);
+void printPermissions(struct stat fileStat);
+void listFile(char *trozos[]);
+void listDir(char *trozos[]);
+void cwd();
 
 
 
@@ -118,6 +126,14 @@ void processCommand(char *command, tList *historial, char * trozos[]) {
         cmdhistoric(trozos,historial);
     }else if (strcmp(command,"makefile")==0){
         makefile(trozos);
+    }else if (strcmp(command,"makedir")==0){
+        makedir(trozos);
+    }else if (strcmp(command,"listfile")==0){
+        listFile(trozos);
+    }else if (strcmp(command,"listdir")==0){
+        listDir(trozos);
+    }else if (strcmp(command,"cwd")==0){
+        cwd();
     }else
         printf("No se reconoce el comando.\n");
 }
@@ -177,14 +193,10 @@ void ppid(){
 //Cambia el directorio de trabajo actual del shell a dir .Cuando se invoca sin aumentos, imprime el
 // directorio de trabajo actual .
 void cd(char * trozos[]){
-  char cwd[MAXIMUN];
 
   if(trozos[1]==NULL){
-    if(getcwd(cwd,sizeof cwd)!=NULL){
-      printf("%s\n",cwd);
-     }else{
-        printf("No se puede mostrar el directorio\n");
-     }
+      perror("Error: falta el parámetro\n");
+      return;
   }else{
     if(chdir(trozos[1])!=0)
     	perror("No se puede mostrar el directorio\n");
@@ -417,7 +429,6 @@ void cmdopen(){
 
 void makefile(char *trozos[]){
 
-
     if (trozos[1] == NULL) {
        printf("Error al crear el archivo %s\n", trozos[1]);
     }
@@ -432,4 +443,102 @@ void makefile(char *trozos[]){
     printf("Archivo %s creado exitosamente\n", trozos[1]);
     fclose(file);
 
+}
+
+void makedir(char *trozos[]){
+    if (trozos[1] == NULL) {
+        printf("Error al crear el directorio %s\n", trozos[1]);
+    }
+
+    if (mkdir(trozos[1], 0700) == -1) {
+        perror("Error al crear el directorio");
+        return;
+    }
+
+    printf("Directorio %s creado exitosamente\n", trozos[1]);
+}
+
+void printPermissions(struct stat fileStat){
+    printf((S_ISDIR(fileStat.st_mode)) ? "d" : "-");
+    printf((fileStat.st_mode & S_IRUSR) ? "r" : "-");
+    printf((fileStat.st_mode & S_IWUSR) ? "w" : "-");
+    printf((fileStat.st_mode & S_IXUSR) ? "x" : "-");
+    printf((fileStat.st_mode & S_IRGRP) ? "r" : "-");
+    printf((fileStat.st_mode & S_IWGRP) ? "w" : "-");
+    printf((fileStat.st_mode & S_IXGRP) ? "x" : "-");
+    printf((fileStat.st_mode & S_IROTH) ? "r" : "-");
+    printf((fileStat.st_mode & S_IWOTH) ? "w" : "-");
+    printf((fileStat.st_mode & S_IXOTH) ? "x" : "-");
+}
+
+void listFile(char *trozos[]){
+    struct stat fileStat;
+    char *nombre, cwd[MAXIMUN];
+
+    if (trozos[1] == NULL){
+        getcwd(cwd,sizeof cwd);
+        nombre = cwd;
+    } else {
+        nombre = trozos[1];
+    }
+
+    if (stat(nombre, &fileStat) == -1){
+        perror("Error al obtener información del archivo o directorio");
+        return;
+    }
+
+    printf("Información sobre: %s\n", nombre);
+    printf("Tamaño: %lld bytes\n", fileStat.st_size);
+    printf("Permisos: ");
+    printPermissions(fileStat);
+    printf("\nNúmero de enlaces: %hd\n", fileStat.st_nlink);
+    printf("Propietario: %s\n", getpwuid(fileStat.st_uid)->pw_name);
+    printf("Grupo: %s\n", getgrgid(fileStat.st_gid)->gr_name);
+    printf("Último acceso: %s\n", ctime(&fileStat.st_atime));
+    printf("Última modificación: %s", ctime(&fileStat.st_mtime));
+}
+
+void listDir(char *trozos[]){
+    DIR *dir;
+    struct dirent *entry;
+    struct stat fileStat;
+    char *dirpath;
+
+    if (trozos[1] == NULL){
+        dirpath = ".";
+    } else {
+        dirpath = trozos[1];
+    }
+
+    dir = opendir(dirpath);
+    if (dir == NULL) {
+        perror("Error al abrir el directorio");
+        return;
+    }
+
+    printf("Archivos y directorios en %s:\n", dirpath);
+    while ((entry = readdir(dir)) != NULL) {
+        char filepath[MAX];
+        snprintf(filepath, sizeof(filepath), "%s/%s", dirpath, entry->d_name);
+
+        if(stat(filepath, &fileStat) == -1){
+            perror("Error al obtener información del archivo");
+            continue;
+        }
+
+        if (S_ISDIR(fileStat.st_mode)){
+            if (strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0) {
+                printf("%s\n", entry->d_name);
+            }
+        }
+
+    }
+
+    closedir(dir);
+}
+
+void cwd(){
+    char cwd[MAXIMUN];
+    getcwd(cwd,sizeof cwd);
+    printf("%s\n",cwd);
 }
