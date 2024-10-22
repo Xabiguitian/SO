@@ -5,6 +5,8 @@
 //LIBRERÍAS IMPLEMENTADAS
 #include "historial.h"
 #include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <time.h>
@@ -47,6 +49,7 @@ void printPermissions(struct stat fileStat);
 void listFile(char *trozos[]);
 void listDir(char *trozos[]);
 void cwd();
+void reclist (char *trozos[]);
 
 
 
@@ -134,6 +137,8 @@ void processCommand(char *command, tList *historial, char * trozos[]) {
         listDir(trozos);
     }else if (strcmp(command,"cwd")==0){
         cwd();
+    }else if (strcmp(command,"reclist")==0){
+        reclist(trozos);
     }else
         printf("No se reconoce el comando.\n");
 }
@@ -542,3 +547,46 @@ void cwd(){
     getcwd(cwd,sizeof cwd);
     printf("%s\n",cwd);
 }
+
+void reclist (char *trozos[]){
+    DIR *dir;
+    struct dirent *entry;
+    struct stat fileStat;
+    char *direccion;
+
+    if (trozos[1] != NULL) {
+        direccion = ".";
+    } else {
+        direccion = trozos[1];
+    }
+
+    if ((dir = opendir(direccion)) == NULL) {
+        perror("Error al abrir el directorio");
+        return;
+    }
+
+    printf("Contenido de: %s\n", direccion);
+    while ((entry = readdir(dir)) != NULL) {
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
+            continue;
+        }
+
+        char direccionArchivo[MAX];
+        snprintf(direccionArchivo, sizeof(direccionArchivo), "%s/%s", direccion, entry->d_name);
+
+        if (stat(direccionArchivo, &fileStat) == -1) {
+            perror("Error al obtener información del archivo");
+            continue;
+        }
+
+        if (S_ISDIR(fileStat.st_mode)) {
+            printf("%s\n", direccionArchivo);
+            char *trozos2[] = {NULL, direccionArchivo};
+            reclist(trozos2);
+        }
+    }
+}
+
+/*void revlist (){
+
+}*/
