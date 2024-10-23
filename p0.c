@@ -196,25 +196,37 @@ void ppid(){
 }
 
 
+int trocearDireccion(char * cadena, char * trozos[]){
+  int i=1;
+    if ((trozos[0]=strtok(cadena,"/"))==NULL)
+        return 0;
+    while ((trozos[i]=strtok(NULL,"/"))!=NULL)
+        i++;
+    return i;
+}
 
-//Cambia el directorio de trabajo actual del shell a dir .Cuando se invoca sin aumentos, imprime el
-// directorio de trabajo actual .
+
+/*Cambia el directorio de trabajo actual del shell a dir .Cuando se invoca sin aumentos,
+imprime el directorio de trabajo actual .*/
 void cd(char * trozos[]){
+	char cwd[MAXIMUN];
 
-  if(trozos[1]==NULL){
-      perror("Error: falta el parámetro\n");
-      return;
-  }else{
-    if(chdir(trozos[1])!=0)
-    	perror("No se puede mostrar el directorio\n");
+	if(trozos[1]==NULL){
+		if(getcwd(cwd,sizeof cwd)!=NULL){
+    		printf("%s\n",cwd);
+    	}else{
+        	printf("No se puede mostrar el directorio\n");
+    	}
+		return;
+	}else if(strcmp(trozos[1],"..")==0){
+		if(chdir("..")!=0){
+			perror("Error: falta la direccion\n");
+		}
+	}else{
+		if(chdir(trozos[1])!=0)
+			perror("No se puede mostrar el directorio\n");
 	}
 }
-//HECHA MAS O MENOS LA FUNCIÓN DE CD!!!!
-
-
-
-
-
 
 //Imprime la fecha actual en el formato DD/MM/AAAA y la fecha actual (-d) hora en el formato hh:mm:ss (-t)
 void cmdate(char *trozos[]){
@@ -494,15 +506,35 @@ void listFile(char *trozos[]){
         return;
     }
 
+    int lon = 0, acc = 0, link = 0;
+    for(int i=1;trozos[i] != 0;i++){
+        if (strcmp(trozos[i], "-long") == 0) lon =1;
+        if (strcmp(trozos[i], "-acc") == 0) acc =1;
+        if (strcmp(trozos[i], "-link") == 0) link =1;
+    }
+
+    if (lon){
+		printf("%s %s %s ", ctime(&fileStat.st_mtime), getpwuid(fileStat.st_uid)->pw_name, getgrgid(fileStat.st_gid)->gr_name);
+        printPermissions(fileStat);
+        printf(" %ld %s", fileStat.st_size, nombre);
+    }
+
+    if (acc){}
+    if (link){}
+    printf("%ld %s\n", fileStat.st_size, nombre);
+
+/*
     printf("Información sobre: %s\n", nombre);
-    printf("Tamaño: %lld bytes\n", fileStat.st_size);
+    printf("Tamaño: %ld bytes\n", fileStat.st_size);
     printf("Permisos: ");
     printPermissions(fileStat);
-    printf("\nNúmero de enlaces: %hd\n", fileStat.st_nlink);
+    printf("\nNúmero de enlaces: %ld\n", fileStat.st_nlink);
     printf("Propietario: %s\n", getpwuid(fileStat.st_uid)->pw_name);
     printf("Grupo: %s\n", getgrgid(fileStat.st_gid)->gr_name);
     printf("Último acceso: %s\n", ctime(&fileStat.st_atime));
     printf("Última modificación: %s", ctime(&fileStat.st_mtime));
+
+*/
 }
 
 void listDir(char *trozos[]){
