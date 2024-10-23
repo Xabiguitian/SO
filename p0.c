@@ -50,7 +50,7 @@ void listFile(char *trozos[]);
 void listDir(char *trozos[]);
 void cwd();
 void reclist (char *trozos[]);
-
+void revlist (char *trozos[]);
 
 
 //MAIN
@@ -139,6 +139,8 @@ void processCommand(char *command, tList *historial, char * trozos[]) {
         cwd();
     }else if (strcmp(command,"reclist")==0){
         reclist(trozos);
+    }else if (strcmp(command,"revlist")==0){
+        revlist(trozos);
     }else
         printf("No se reconoce el comando.\n");
 }
@@ -523,6 +525,10 @@ void listDir(char *trozos[]){
 
     printf("Archivos y directorios en %s:\n", dirpath);
     while ((entry = readdir(dir)) != NULL) {
+        if(entry->d_name[0] == '.'){
+            continue;
+        }
+
         char filepath[MAX];
         snprintf(filepath, sizeof(filepath), "%s/%s", dirpath, entry->d_name);
 
@@ -554,7 +560,7 @@ void reclist (char *trozos[]){
     struct stat fileStat;
     char *direccion;
 
-    if (trozos[1] != NULL) {
+    if (trozos[1] == NULL) {
         direccion = ".";
     } else {
         direccion = trozos[1];
@@ -567,6 +573,9 @@ void reclist (char *trozos[]){
 
     printf("Contenido de: %s\n", direccion);
     while ((entry = readdir(dir)) != NULL) {
+        if(entry->d_name[0] == '.'){
+            continue;
+        }
         if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
             continue;
         }
@@ -585,8 +594,51 @@ void reclist (char *trozos[]){
             reclist(trozos2);
         }
     }
+
+    closedir(dir);
 }
 
-/*void revlist (){
+void revlist (char *trozos[]){
+    DIR *dir;
+    struct dirent *entry;
+    struct stat fileStat;
+    char *direccion;
 
-}*/
+    if (trozos[1] == NULL) {
+        direccion = ".";
+    } else {
+        direccion = trozos[1];
+    }
+
+    if ((dir = opendir(direccion)) == NULL) {
+        perror("Error al abrir el directorio");
+        return;
+    }
+
+    printf("Contenido de: %s\n", direccion);
+    while ((entry = readdir(dir)) != NULL) {
+        if(entry->d_name[0] == '.'){
+            continue;
+        }
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
+            continue;
+        }
+
+        char direccionArchivo[MAX];
+        snprintf(direccionArchivo, sizeof(direccionArchivo), "%s/%s", direccion, entry->d_name);
+
+        if (stat(direccionArchivo, &fileStat) == -1) {
+            perror("Error al obtener información del archivo");
+            continue;
+        }
+
+        if (S_ISDIR(fileStat.st_mode)) {
+            //Todo igual que en reclist pero el printf se hace después
+            char *trozos2[] = {NULL, direccionArchivo};
+            reclist(trozos2);
+            printf("%s\n", direccionArchivo);
+        }
+    }
+
+    closedir(dir);
+}
