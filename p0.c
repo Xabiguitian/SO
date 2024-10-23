@@ -542,22 +542,35 @@ void listDir(char *trozos[]){
     struct dirent *entry;
     struct stat fileStat;
     char *dirpath;
+    int hid = 0,lon = 0, acc = 0, link = 0;
 
-    if (trozos[1] == NULL){
-        dirpath = ".";
+    if (trozos[1] == NULL || trozos[1][0] != '-'){
+        if (trozos[1] == NULL)
+        {
+            dirpath = ".";
+        }else{
+            dirpath = trozos[1];
+        }
+        
     } else {
-        dirpath = trozos[1];
+        dirpath = ".";
+        for(int i=1;trozos[i] != 0;i++){
+            if (strcmp(trozos[i], "-hid") == 0) hid =1;
+            if (strcmp(trozos[i], "-long") == 0) lon =1;
+            else if (strcmp(trozos[i], "-acc") == 0) acc =1;
+            else if (strcmp(trozos[i], "-link") == 0) link =1;
+            else dirpath = trozos[1];
+        }
     }
 
-    dir = opendir(dirpath);
-    if (dir == NULL) {
+    if ((dir = opendir(dirpath)) == NULL){
         perror("Error al abrir el directorio");
         return;
     }
 
     printf("Archivos y directorios en %s:\n", dirpath);
     while ((entry = readdir(dir)) != NULL) {
-        if(entry->d_name[0] == '.'){
+        if(!hid && entry->d_name[0] == '.'){
             continue;
         }
 
@@ -569,10 +582,36 @@ void listDir(char *trozos[]){
             continue;
         }
 
-        if (S_ISDIR(fileStat.st_mode)){
-            if (strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0) {
+        if (S_ISDIR(fileStat.st_mode) || S_ISLNK(fileStat.st_mode)){
+            if (lon)
+            {
+                printf("%s %ld (%ld) %s %s ", ctime(&fileStat.st_atime), (long)fileStat.st_nlink, (long)fileStat.st_ino, getpwuid(fileStat.st_uid)->pw_name, getgrgid(fileStat.st_gid)->gr_name);
+                printPermissions(fileStat);
+                printf(" %ld %s", fileStat.st_size, dirpath);
+            }
+
+            if (acc)
+            {
+                printf("%s", ctime(&fileStat.st_atime));
+            }
+
+            if (link && S_ISLNK(fileStat.st_mode))
+            {
+                char link[MAX];
+                ssize_t len = readlink(filepath, link, sizeof(link) - 1);
+                if (len != -1)
+                {
+                    link[len] = '\0';
+                    printf("%s -> %s\n", entry->d_name, link);
+                } else {
+                    printf("%s (enlace simbólico, pero no se pudo obtener el destino)\n", entry->d_name);
+                }
+                
+            } else {
                 printf("%s\n", entry->d_name);
             }
+            
+            
         }
 
     }
