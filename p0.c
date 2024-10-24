@@ -51,6 +51,8 @@ void listDir(char *trozos[]);
 void cwd();
 void reclist (char *trozos[]);
 void revlist (char *trozos[]);
+void erase(char *trozos[]);
+void delrec(char *path);
 
 
 //MAIN
@@ -141,6 +143,15 @@ void processCommand(char *command, tList *historial, char * trozos[]) {
         reclist(trozos);
     }else if (strcmp(command,"revlist")==0){
         revlist(trozos);
+    }else if (strcmp(command,"erase")==0){
+        erase(trozos);
+    }else if (strcmp(command,"delrec")==0){
+        if (trozos[1] != NULL)
+        {
+            delrec(trozos[1]);
+        }else{
+            printf("Error: Se debe especificar un archivo o directorio para eliminar recursivamente\n");
+        }
     }else
         printf("No se reconoce el comando.\n");
 }
@@ -735,4 +746,105 @@ void erase(char *trozos[]){
     }
     
     target = trozos[1];
+
+    if (stat(target, &fileStat) == -1)
+    {
+        perror("Error al obtener información del archivo o directorio");
+        return;
+    }
+
+    if (S_ISREG(fileStat.st_mode)){
+        if (remove(target) == 0)
+        {
+            printf("Archivo eliminado: %s\n", target);
+        }else{
+            perror("Error al eliminar el archivo");
+        }
+        
+    } else if (S_ISDIR(fileStat.st_mode)){
+        DIR *dir = opendir(target);
+        if (dir == NULL)
+        {
+            perror("Error al abrir el directorio");
+            return;
+        }
+        
+        struct dirent *entry;
+        int isEmpty = 1;
+        
+        while((entry = readdir(dir)) != NULL){
+            if (strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0){
+                isEmpty=0;
+                break;
+            }
+        }
+        closedir(dir);
+
+        if (isEmpty)
+        {
+            if (remove(target) == 0)
+            {
+                printf("Directorio vacío eliminado: %s\n", target);
+            } else {
+                perror("Error al eliminar el directorio");
+            }
+        }else{
+            printf("Error: El directorio no está vacío y no se puede eliminar\n");
+        }
+        
+    }else{
+        printf("Error: El objetivo no es un archivo ni un directorio\n");
+    }
+    
+}
+
+void delrec(char *path){
+    struct stat fileStat;
+
+    if (stat(path, &fileStat) == -1)
+    {
+        perror("Error al obtener información del archivo o directorio");
+        return;
+    }
+
+    if (S_ISREG(fileStat.st_mode))
+    {
+        if (remove(path) == 0)
+        {
+            printf("Archivo eliminado: %s\n", path);
+        }else{
+            perror("Error al eliminar el archivo");
+        }
+    }else if(S_ISDIR(fileStat.st_mode)){
+        DIR *dir = opendir(path);
+        if(dir == NULL){
+            perror("Error al abrir el directorio");
+            return;
+        }
+
+        struct dirent *entry;
+        char filepath[MAX];
+
+        while ((entry = readdir(dir)) != NULL)
+        {
+            if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
+            {
+                continue;
+            }
+            
+            snprintf(filepath, sizeof(filepath), "%s/%s", path, entry->d_name);
+
+            delrec(filepath);
+        }
+        
+        closedir(dir);
+
+        if(rmdir(path) == 0){
+            printf("Directorio eliminado: %s\n", path);
+        }else {
+            perror("Error al eliminar el directorio");
+        }
+    } else {
+        printf("Error: El objetivo no es un archivo ni un directorio\n");
+    }
 }
