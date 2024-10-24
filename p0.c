@@ -493,48 +493,56 @@ void printPermissions(struct stat fileStat){
 void listFile(char *trozos[]){
     struct stat fileStat;
     char *nombre, cwd[MAXIMUN];
+    int lon = 0, acc = 0, link = 0;
 
     if (trozos[1] == NULL){
         getcwd(cwd,sizeof cwd);
         nombre = cwd;
     } else {
-        nombre = trozos[1];
+        for(int i=1;trozos[i] != 0;i++){
+        if (strcmp(trozos[i], "-long") == 0) lon =1;
+        else if (strcmp(trozos[i], "-acc") == 0) acc =1;
+        else if (strcmp(trozos[i], "-link") == 0) link =1;
+        else nombre = trozos[i];
+    }
     }
 
     if (stat(nombre, &fileStat) == -1){
         perror("Error al obtener información del archivo o directorio");
         return;
     }
-
-    int lon = 0, acc = 0, link = 0;
-    for(int i=1;trozos[i] != 0;i++){
-        if (strcmp(trozos[i], "-long") == 0) lon =1;
-        if (strcmp(trozos[i], "-acc") == 0) acc =1;
-        if (strcmp(trozos[i], "-link") == 0) link =1;
-    }
+    
 
     if (lon){
+        struct passwd *pw = getpwuid(fileStat.st_uid);
+        struct group *gr = getgrgid(fileStat.st_gid);
+
+        if (pw == NULL || gr == NULL) {
+            perror("Error al obtener información de usuario o grupo");
+            return;
+        }
+
 		printf("%s %s %s ", ctime(&fileStat.st_mtime), getpwuid(fileStat.st_uid)->pw_name, getgrgid(fileStat.st_gid)->gr_name);
         printPermissions(fileStat);
-        printf(" %ld %s", fileStat.st_size, nombre);
+        printf(" %lld %s", fileStat.st_size, nombre);
     }
 
-    if (acc){}
-    if (link){}
-    printf("%ld %s\n", fileStat.st_size, nombre);
+    if (acc){
+        printf("Último acceso: %s\n", ctime(&fileStat.st_atime));
+    }
 
-/*
-    printf("Información sobre: %s\n", nombre);
-    printf("Tamaño: %ld bytes\n", fileStat.st_size);
-    printf("Permisos: ");
-    printPermissions(fileStat);
-    printf("\nNúmero de enlaces: %ld\n", fileStat.st_nlink);
-    printf("Propietario: %s\n", getpwuid(fileStat.st_uid)->pw_name);
-    printf("Grupo: %s\n", getgrgid(fileStat.st_gid)->gr_name);
-    printf("Último acceso: %s\n", ctime(&fileStat.st_atime));
-    printf("Última modificación: %s", ctime(&fileStat.st_mtime));
+    if (link && S_ISLNK(fileStat.st_mode)) {
+        char linkTarget[MAXIMUN];
+        ssize_t len = readlink(nombre, linkTarget, sizeof(linkTarget) - 1);
 
-*/
+        if (len != -1) {
+            linkTarget[len] = '\0';
+            printf("%s -> %s\n", nombre, linkTarget);
+        } else {
+            perror("Error al leer el enlace simbólico");
+        }
+    }
+    printf("%lld %s\n", fileStat.st_size, nombre);
 }
 
 void listDir(char *trozos[]){
@@ -544,24 +552,19 @@ void listDir(char *trozos[]){
     char *dirpath;
     int hid = 0,lon = 0, acc = 0, link = 0;
 
-    if (trozos[1] == NULL || trozos[1][0] != '-'){
-        if (trozos[1] == NULL)
-        {
-            dirpath = ".";
-        }else{
-            dirpath = trozos[1];
-        }
-        
-    } else {
+    if (trozos[1]==NULL)
+    {
         dirpath = ".";
-        for(int i=1;trozos[i] != 0;i++){
+    } else{
+        for(int i=1;trozos[i] != NULL;i++){
             if (strcmp(trozos[i], "-hid") == 0) hid =1;
-            if (strcmp(trozos[i], "-long") == 0) lon =1;
+            else if (strcmp(trozos[i], "-long") == 0) lon =1;
             else if (strcmp(trozos[i], "-acc") == 0) acc =1;
             else if (strcmp(trozos[i], "-link") == 0) link =1;
-            else dirpath = trozos[1];
+            else dirpath = trozos[i];
         }
     }
+    
 
     if ((dir = opendir(dirpath)) == NULL){
         perror("Error al abrir el directorio");
@@ -585,9 +588,16 @@ void listDir(char *trozos[]){
         if (S_ISDIR(fileStat.st_mode) || S_ISLNK(fileStat.st_mode)){
             if (lon)
             {
-                printf("%s %ld (%ld) %s %s ", ctime(&fileStat.st_atime), (long)fileStat.st_nlink, (long)fileStat.st_ino, getpwuid(fileStat.st_uid)->pw_name, getgrgid(fileStat.st_gid)->gr_name);
+                struct passwd *pw = getpwuid(fileStat.st_uid);
+                struct group *gr = getgrgid(fileStat.st_gid);
+
+                if (pw == NULL || gr == NULL) {
+                    perror("Error al obtener información de usuario/grupo");
+                    continue;
+                }
+                printf("%s %ld (%ld) %s %s ", ctime(&fileStat.st_atime), (long)fileStat.st_nlink, (long)fileStat.st_ino, pw->pw_name, gr->gr_name);
                 printPermissions(fileStat);
-                printf(" %ld %s", fileStat.st_size, dirpath);
+                printf(" %lld %s", fileStat.st_size, dirpath);
             }
 
             if (acc)
@@ -712,4 +722,17 @@ void revlist (char *trozos[]){
     }
 
     closedir(dir);
+}
+
+void erase(char *trozos[]){
+    struct stat fileStat;
+    char *target;
+
+    if (trozos[1] == NULL)
+    {
+        printf("Debe especificar un archivo o directorio para eliminar\n");
+        return;
+    }
+    
+    target = trozos[1];
 }
