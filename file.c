@@ -16,27 +16,17 @@
 
 //FUNCIONES AUXILIARES PARA EL HISTORIAL
 
-void deleteListF(filelist *F){ //funcion para borrar el historial antes de cerrar el terminal
-    int i;
-    for(i=lastF(*F);i>=0;i--){
-        free(F->fileName[i]);
-    }
-}
-
-
-
 void createEmptyListF(filelist *F){
     F->lastPos=NULLF;
 }
 
 
 char * getItemF(int i, filelist F){
-
     if(i>=0&&i<=F.lastPos){
-        return F.fileName[i];
+        return F.files[i].name;
     }else{
-        return NULL;
-    }
+      return NULL;
+	}
 }
 
 int lastF(filelist F){
@@ -53,16 +43,23 @@ bool isEmptyListF(filelist F){
 }
 bool insertItemF(char commd[] , filelist *F){
 
-    if(F->lastPos>=MAXIMUND-1){
+    if(F->lastPos>=MAXF-1){
         return false;
     }else{
-        //char * comdau = malloc(sizeof(char)*MAXIMUND);
-        F->lastPos++; //añadimos en la ultima posicion un "hueco" más en el array.
-        F->fileName[F->lastPos] = malloc((strlen(commd)+1)*sizeof(char));
-        strcpy(F->fileName[F->lastPos],commd);
+
+        F->lastPos++;
+         F->files[F->lastPos].id=F->lastPos;
+
+        F->files[F->lastPos].name = malloc((strlen(commd)+1)*sizeof(char));
+        if(F->files[F->lastPos].name==NULL){
+          return false;
+        }
+        strcpy(F->files[F->lastPos].name,commd);
+
+          F->files[F->lastPos].mode=0;
 
         return true;
-        free(F->fileName);
+        free( F->files[F->lastPos].name);
     }
 
 }
@@ -82,49 +79,58 @@ void listarFicheros(filelist * F){
     }
     int pFile=firstF(*F);
     for(i=0;i<=lastF(*F);i++){
-        printf("%s\n",  getItemF(i,*F));
+        printf("descriptor: %d -> %s ",  F->files[i].id, F->files[i].name);
+
+        if(F->files[i].mode != -1) {
+            if(F->files[i].mode & O_CREAT)
+                printf("O_CREAT\n");
+            else if(F->files[i].mode & O_EXCL)
+                printf("O_EXCL\n");
+            else if(F->files[i].mode & O_WRONLY)
+                printf("O_WRONLY\n");
+            else if(F->files[i].mode & O_RDWR)
+                printf("O_RDWR\n");
+            else if(F->files[i].mode & O_APPEND)
+                printf("O_APPEND\n");
+            else if(F->files[i].mode & O_TRUNC)
+                printf("O_TRUNC\n");
+            else //if (modo & O_RDONLY)
+                printf("O_RDONLY\n");
+        } else {
+            continue;
+        }
+
         pFile=nextF(pFile,*F);
     }
 }
 
 
-void añadirFicheros(int id, char *name, int mode, filelist * F){
-    int i;
-    int atributos=fcntl(id,F_GETFL);
-    long lastFile=sysconf( _SC_OPEN_MAX );
+bool añadirFicheros(int id, char *name, int mode, filelist * F){
+  //int atributos=fcntl(id, F_GETFL);
+    if(F->lastPos>=MAXF-1){
+      perror("No hay espacio para añadir el fichero\n");
+      return false;
+    }else{
+      F->lastPos++;
+      F->files[F->lastPos].id=id;
 
-    for(i=0;i<lastFile&&F->fileName[i]!=NULL;i++){
-        if(i<lastFile){
-            tFile newFile;;
-            newFile.id=id;
-            strcpy(newFile.name,name);
-            newFile.mode=mode;
-            if(atributos!=-1){
-                if(atributos & O_EXCL){
-                    strcpy(newFile.opening, "O_EXCL");
-                }else if(atributos & O_CREAT){
-                    strcpy(newFile.opening, "O_CREAT");
-                }else if(atributos & O_TRUNC){
-                    strcpy(newFile.opening, "O_TRUNC");
-                }else if(atributos & O_APPEND){
-                    strcpy(newFile.opening, "O_APPEND");
-                }else if(atributos & O_WRONLY){
-                    strcpy(newFile.opening, "O_WRONLY");
-                }else if(atributos & O_RDWR){
-                    strcpy(newFile.opening, "O_RDWR");
-                }else if(atributos & O_RDONLY){
-                    strcpy(newFile.opening, "O_RDONLY");
-                }
-            }
-            F->fileName[i]=strdup(name);
-            F->info=&newFile;
-            F->lastPos=i;
-        }else{
-            perror("Error al añadir fichero, no hay espacio en la lista.\n");
-        }
+      if(mode == O_CREAT)
+            F->files[F->lastPos].mode = O_CREAT;
+        else if(mode == O_EXCL)
+            F->files[F->lastPos].mode = O_EXCL;
+        else if(mode == O_TRUNC)
+            F->files[F->lastPos].mode = O_TRUNC;
+        else
+            F->files[F->lastPos].mode = fcntl(F->files[F->lastPos].id, F_SETFL, mode);
+
+      F->files[F->lastPos].name = malloc(strlen(name)+1);
+      strcpy(F->files[F->lastPos].name,name);
+      return true;
     }
-
 }
+
+
+
 
 void EliminarFicheros(filelist *F){
     int i;
@@ -132,11 +138,29 @@ void EliminarFicheros(filelist *F){
         perror("No hay ficheros que eliminar, la lista ya está vacía.\n");
     }else{
         for(i=0;i<=lastF(*F);i++){
-            if(F->fileName[i]!=NULL){
-                printf("%s\n",F->fileName[i]);
-                free(F->fileName[i]);
-                F->fileName[i]=NULL;
+            if(F->files[i].name!=NULL){
+                free(F->files[i].name);
+                F->files[i].name=NULL;
             }
         }
+    }
+    F->lastPos=-1;
+}
+
+void EliminarFichero(filelist *F, int df){
+    int i, j;
+
+    if(isEmptyListF(*F)){
+        perror("No hay ficheros que eliminar, la lista ya está vacía.\n");
+    }else{
+
+        for(i=0;F->files[i].id!=df;i++);
+        free(F->files[i].name);
+
+        for(j = i; j < MAXF; j++) {
+            F->files[j] = F->files[j + 1];
+        }
+
+        F->lastPos--;
     }
 }

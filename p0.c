@@ -10,10 +10,6 @@
 #include "file.h"
 
 
-
-
-
-
 //FUNCIONES DE LOS COMANDOS
 
 //Imprime el nombre y los logins de los autores del núcleo
@@ -158,7 +154,7 @@ void help(tList *historial, char * trozos[]){
   }else if(strcmp(trozos[1],"listfile")==0) {
     printf("Proporciona información de archivos y directorios\n");
   }else if(strcmp(trozos[1],"listdir")==0) {
-    printf("Lista el contenido de un directorio");
+    printf("Lista el contenido de un directorio\n");
   }else if(strcmp(trozos[1],"reclist")==0) {
     printf("Lista los directorios recursivamente (subdirectorios después)\n");
   }else if(strcmp(trozos[1],"revlist")==0) {
@@ -192,23 +188,14 @@ void off(){
 //Cambia el directorio de trabajo actual del shell a dir .Cuando se invoca sin aumentos, imprime el
 // directorio de trabajo actual .
 void cd(char * trozos[]){
-  char cwd[MAX];
-
-if(trozos[1]==NULL){
-  if(getcwd(cwd,sizeof(cwd))!=NULL){
-    printf("%s\n",cwd);
+  if(trozos[1]==NULL){
+    cwd();
   }else{
-    perror("No se puede mostrar el directorio.\n");
-  }
- }else{
-   if(chdir(trozos[1])!=0){
-     perror("No se puede cambiar el directorio.\n");
+    if(chdir(trozos[1])!=0){
+      perror("No se puede cambiar el directorio.\n");
     }
-   }
+  }
 }
-
-
-
 
 //FUNCIÓN QUE MUESTRA EL HISTORIAL DEL SHELL
 void cmdhistoric(char *trozos[],tList * historial){
@@ -226,7 +213,7 @@ void cmdhistoric(char *trozos[],tList * historial){
                perror("No se han introducido tantos comandos en el sistema.\n");
              }else{
 
-                 printf("%s\n",  getItemH(atoi(trozos[1]-1),*historial));
+                 printf("%s\n",  getItemH(atoi(trozos[1])-1,*historial));
 
 
              }
@@ -242,7 +229,7 @@ void cmdhistoric(char *trozos[],tList * historial){
               }
 
     }
-} //no reconoce el primer comando
+}
 
 
 
@@ -252,14 +239,14 @@ void cmdhistoric(char *trozos[],tList * historial){
 
 
 
-void Cmd_open(char * tr[], filelist F){
+void Cmd_open(char * tr[], filelist * F){
     int i,df, mode=0;
 
-    if (tr[0]==NULL) {
-       listarFicheros(&F);
-        return;
+    if (tr[1]==NULL) {
+       listarFicheros(F);
+       return;
     }
-    for (i=1; tr[i]!=NULL; i++)
+    for (i=2; tr[i]!=NULL; i++)
       if (!strcmp(tr[i],"cr")) mode|=O_CREAT;
       else if (!strcmp(tr[i],"ex")) mode|=O_EXCL;
       else if (!strcmp(tr[i],"ro")) mode|=O_RDONLY;
@@ -269,63 +256,63 @@ void Cmd_open(char * tr[], filelist F){
       else if (!strcmp(tr[i],"tr")) mode|=O_TRUNC;
       else break;
 
-    if ((df=open(tr[0],mode,0777))==-1)
+    if ((df=open(tr[1],mode,0777))==-1)
         perror ("Imposible abrir fichero");
     else{
-       añadirFicheros(df,tr[0],mode,&F);
-        printf ("Anadida entrada a la tabla ficheros abiertos..................");
-}
+       printf ("Anadida entrada a la tabla ficheros abiertos..................\n");
+       añadirFicheros(df, tr[1], mode, F);
+	}
 }
 
 
 //FUNCION CLOSE
-void Cmd_close (char *tr[],filelist F){
+void Cmd_close(char *tr[],filelist *F){
     int df;
 
-    if (tr[0]==NULL || (df=atoi(tr[0]))<0) {
-       listarFicheros(&F);
-        return;
+    if (tr[1]==NULL || (df=atoi(tr[1]))<0) {
+       listarFicheros(F);
+
+    } else {
+      	df=atoi(tr[1]);
+    	if (close(df)==-1)
+    		perror("Imposible cerrar descriptor");
+    	else{
+			EliminarFichero(F, df);
+    	}
     }
-
-
-    if (close(df)==-1)
-        perror("Inposible cerrar descriptor");
-    else
-       EliminarFicheros(&F);
 }
 
 //FUNCION DUP
-void Cmd_dup (char * tr[],filelist F){
+void Cmd_dup (char * tr[],filelist *F){
     int df, duplicado;
     char aux[MAXNAME],*p;
 
-    if (tr[0]==NULL || (df=atoi(tr[0]))<0) {
-        listarFicheros(&F);
+    if (tr[1]==NULL || (df=atoi(tr[1]))<0) {
+        listarFicheros(F);
         return;
     }
 
+    df=atoi(tr[1]);
     duplicado=dup(df);
     if(duplicado==-1){
       perror("Error al duplicar el descriptor\n");
-      }
-    p=getItemF(df,F);
+    }
+
+    p=getItemF(df,*F);
     if(p==NULL){
       perror("No se encontró el archivo asociado al descriptor.\n");
     }
-    sprintf (aux,"dup %d (%s)",df, p);
-
 
     tFile newFile;
     newFile.id=duplicado;
-    newFile.name=strdup(aux);
-    newFile.opening=strdup("Duplicado");
     newFile.mode=fcntl(duplicado,F_GETFL);
 
-    if(!insertItemF(newFile.name,&F)){
-      perror("Error al añadir el archivo duplicado a la lista de archivos abiertos.\n");
-     }else{
-       printf("%d, asociado a %s \n",duplicado,aux);
-}
+    if(p ==NULL || duplicado == -1){
+    	perror("Error al añadir el archivo duplicado a la lista de archivos abiertos.\n");
+    } else {
+    	sprintf(aux, "dup %d (%s)", df, p);
+    	añadirFicheros(duplicado, aux, newFile.mode, F);
+    }
 }
 
 

@@ -5,30 +5,44 @@
 #include "historial.h"
 #include "p0.h"
 
+// Struct para las opciones de stat y list
+typedef struct optionBool {
+    bool longOption;
+    bool linkOption;
+    bool accOption;
+    //bool hidOption;
+    //bool recaOption;
+    //bool recbOption;
+} optionBool;
+
+
 void makefile(char *trozos[]){
+	int df;
 
     if (trozos[1] == NULL) {
-       printf("Error al crear el archivo %s\n", trozos[1]);
+       printf("Error al crear el archivo\n");
+       return;
     }
 
-    FILE *file = fopen(trozos[1], "w");
+    df = open(trozos[1], O_CREAT | O_EXCL, 0664);
 
-    if (file == NULL) {
+    if (df == -1) {
       perror("Error al abrir el archivo");
       return;
     }
 
     printf("Archivo %s creado exitosamente\n", trozos[1]);
-    fclose(file);
+    close(df);
 
 }
 
 void makedir(char *trozos[]){
     if (trozos[1] == NULL) {
         printf("Error al crear el directorio %s\n", trozos[1]);
+        return;
     }
 
-    if (mkdir(trozos[1], 0700) == -1) {
+    if (mkdir(trozos[1], 0775) == -1) {
         perror("Error al crear el directorio");
         return;
     }
@@ -49,60 +63,83 @@ void printPermissions(struct stat fileStat){
     printf((fileStat.st_mode & S_IXOTH) ? "x" : "-");
 }
 
-void listFile(char *trozos[]){
-    struct stat fileStat;
-    char *nombre, cwd[MAXIMUN];
-    int lon = 0, acc = 0, link = 0;
+// Funcion auxiliar para stat y list:
+void printStatInfo(const char * name, const struct stat *st, struct optionBool opciones) {
+    struct passwd *userInfo;
+    struct group *groupInfo;
+    char linkName[100]="", userName[20], groupName[20], time[50];
 
-    if (trozos[1] == NULL){
-        getcwd(cwd,sizeof cwd);
-        nombre = cwd;
-    } else {
-        for(int i=1;trozos[i] != 0;i++){
-        if (strcmp(trozos[i], "-long") == 0) lon =1;
-        else if (strcmp(trozos[i], "-acc") == 0) acc =1;
-        else if (strcmp(trozos[i], "-link") == 0) link =1;
-        else nombre = trozos[i];
-    }
+    if(opciones.longOption) {
+        if(opciones.accOption)
+            strftime(time, sizeof(time), "%Y/%m/%d-%H:%M", localtime(&st->st_atime));
+        else
+            strftime(time, sizeof(time), "%Y/%m/%d-%H:%M", localtime(&st->st_mtime));
+        printf("%s", time);
+
+        if((userInfo = getpwuid(st->st_uid)) != NULL)
+            sprintf(userName, "%s", userInfo->pw_name);
+        else
+            sprintf(userName, "%d", st->st_uid);
+
+        if((groupInfo = getgrgid(st->st_gid)) != NULL)
+            sprintf(groupName, "%s", groupInfo->gr_name);
+        else
+            sprintf(groupName, "%d", st->st_gid);
+
+        printf("%2ld (%8ld) %s %s", (long)st->st_nlink, (long)st->st_ino, userName, groupName);
+        printPermissions(*st);
     }
 
-    if (stat(nombre, &fileStat) == -1){
-        perror("Error al obtener información del archivo o directorio");
+    printf("%9ld %s", st->st_size, name);
+
+    if(opciones.linkOption && opciones.longOption && S_ISLNK(st->st_mode)) {
+
+        if((readlink(name, linkName, sizeof(linkName) - 1)) != -1)
+            printf("->%s", linkName);
+        else
+            perror("Imposible acceder al link");
+    }
+
+    printf("\n");
+}
+
+void listFile(char * tr[]) {
+    int i;
+    struct optionBool opciones;
+
+    opciones.longOption = false;
+    opciones.linkOption = false;
+    opciones.accOption = false;
+
+    if (tr[1] == NULL) {
+        cwd();
         return;
     }
 
-
-    if (lon){
-        struct passwd *pw = getpwuid(fileStat.st_uid);
-        struct group *gr = getgrgid(fileStat.st_gid);
-
-        if (pw == NULL || gr == NULL) {
-            perror("Error al obtener información de usuario o grupo");
-            return;
-        }
-
-		printf("%s %s %s ", ctime(&fileStat.st_mtime), getpwuid(fileStat.st_uid)->pw_name, getgrgid(fileStat.st_gid)->gr_name);
-        printPermissions(fileStat);
-        printf(" %ld %s", fileStat.st_size, nombre);
-    }
-
-    if (acc){
-        printf("Último acceso: %s\n", ctime(&fileStat.st_atime));
-    }
-
-    if (link && S_ISLNK(fileStat.st_mode)) {
-        char linkTarget[MAXIMUN];
-        ssize_t len = readlink(nombre, linkTarget, sizeof(linkTarget) - 1);
-
-        if (len != -1) {
-            linkTarget[len] = '\0';
-            printf("%s -> %s\n", nombre, linkTarget);
+    for (i = 1; tr[i] != NULL; i++) {
+        if (tr[i][0] == '-') {
+            // Opcion detectada
+            if (tr[i][2] == 'o')
+                opciones.longOption = true;
+            else if (tr[i][1] == 'a')
+                opciones.accOption = true;
+            else if (tr[i][2] == 'i')
+                opciones.linkOption = true;
+            else {
+                fprintf(stderr, "Opcion no valida: %s\n", tr[i]);
+                return;
+            }
         } else {
-            perror("Error al leer el enlace simbólico");
+            struct stat st;
+
+            if (stat(tr[i], &st) == 0)
+                printStatInfo(tr[i], &st, opciones);
+            else
+                perror("Imposible acceder al fichero o directorio");
         }
     }
-    printf("%ld %s\n", fileStat.st_size, nombre);
 }
+
 
 void listDir(char *trozos[]){
     DIR *dir;
@@ -111,9 +148,11 @@ void listDir(char *trozos[]){
     char *dirpath;
     int hid = 0,lon = 0, acc = 0, link = 0;
 
+
     if (trozos[1]==NULL)
     {
-        dirpath = ".";
+        cwd();
+        return;
     } else{
         for(int i=1;trozos[i] != NULL;i++){
             if (strcmp(trozos[i], "-hid") == 0) hid =1;
@@ -144,7 +183,7 @@ void listDir(char *trozos[]){
             continue;
         }
 
-        if (S_ISDIR(fileStat.st_mode) || S_ISLNK(fileStat.st_mode)){
+        
             if (lon)
             {
                 struct passwd *pw = getpwuid(fileStat.st_uid);
@@ -179,9 +218,6 @@ void listDir(char *trozos[]){
             } else {
                 printf("%s\n", entry->d_name);
             }
-
-
-        }
 
     }
 

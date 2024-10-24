@@ -31,12 +31,12 @@ void pid();
 void ppid();
 void cd(char * trozos[]);
 void cmdate(char *trozos[]);
-void Cmd_open(char * tr[], filelist F);
-void Cmd_dup (char * tr[],filelist F);
+void Cmd_open(char * tr[], filelist *F);
+void Cmd_dup (char * tr[],filelist *F);
 void infosys();
 void off();
 void cmdhistoric(char *trozos[], tList * historial);
-void Cmd_close (char *tr[],filelist F);
+void Cmd_close (char *tr[],filelist *F);
 void help(tList *historial, char * trozos[]);
 
 

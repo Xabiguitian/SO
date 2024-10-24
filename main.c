@@ -42,17 +42,18 @@ int TrocearCadena(char * cadena, char * trozos[]){
             }else if(strcmp(trozos[0],"date")==0){
                 cmdate(trozos);
             }else if(strcmp(trozos[0],"open")==0) {
-              Cmd_open(trozos, *F);
+              Cmd_open(trozos, F);
             }else if(strcmp(trozos[0], "dup")==0) {
-                Cmd_dup (trozos,*F);
+                Cmd_dup (trozos,F);
             }else if(strcmp(trozos[0], "close")==0) {
-              Cmd_close ( trozos,*F);
+              Cmd_close (trozos,F);
             }else if(strcmp(trozos[0],"infosys")==0) {
                 infosys();
             }else if(strcmp(trozos[0],"help")==0) {
                 help(historial, trozos);
             }else if(strcmp(trozos[0],"quit")==0||strcmp(trozos[0],"exit")==0||strcmp(trozos[0],"bye")==0) {
                 deleteListH(historial);
+                EliminarFicheros(F);
                 *fin=0;
                 off();
             }else if(strcmp(trozos[0],"historic")==0) {
@@ -62,7 +63,7 @@ int TrocearCadena(char * cadena, char * trozos[]){
             }else if(strcmp(trozos[0],"makedir")==0) {
                 makedir(trozos);
             }else if(strcmp(trozos[0],"cwd")==0) {
-                cwd();
+                 cwd();
             }else if(strcmp(trozos[0],"listfile")==0) {
                   listFile(trozos);
             }else if(strcmp(trozos[0],"listdir")==0) {
@@ -102,6 +103,10 @@ int main() {
 
         createEmptyListH(&historial);
         createEmptyListF(&F);
+
+        añadirFicheros(0, "entrada estandar", O_RDWR, &F);
+        añadirFicheros(1, "salida estandar", O_RDWR, &F);
+        añadirFicheros(2, "error estandar", O_RDWR, &F);
 
        do {
             imprimirPrompt();
