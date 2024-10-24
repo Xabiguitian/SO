@@ -2,6 +2,8 @@
 // Created by angela on 22/10/24.
 //
 #include "p1.h"
+#include "historial.h"
+#include "p0.h"
 
 void makefile(char *trozos[]){
 
@@ -68,7 +70,7 @@ void listFile(char *trozos[]){
         perror("Error al obtener información del archivo o directorio");
         return;
     }
-    
+
 
     if (lon){
         struct passwd *pw = getpwuid(fileStat.st_uid);
@@ -81,7 +83,7 @@ void listFile(char *trozos[]){
 
 		printf("%s %s %s ", ctime(&fileStat.st_mtime), getpwuid(fileStat.st_uid)->pw_name, getgrgid(fileStat.st_gid)->gr_name);
         printPermissions(fileStat);
-        printf(" %lld %s", fileStat.st_size, nombre);
+        printf(" %ld %s", fileStat.st_size, nombre);
     }
 
     if (acc){
@@ -99,7 +101,7 @@ void listFile(char *trozos[]){
             perror("Error al leer el enlace simbólico");
         }
     }
-    printf("%lld %s\n", fileStat.st_size, nombre);
+    printf("%ld %s\n", fileStat.st_size, nombre);
 }
 
 void listDir(char *trozos[]){
@@ -121,7 +123,7 @@ void listDir(char *trozos[]){
             else dirpath = trozos[i];
         }
     }
-    
+
 
     if ((dir = opendir(dirpath)) == NULL){
         perror("Error al abrir el directorio");
@@ -154,7 +156,7 @@ void listDir(char *trozos[]){
                 }
                 printf("%s %ld (%ld) %s %s ", ctime(&fileStat.st_atime), (long)fileStat.st_nlink, (long)fileStat.st_ino, pw->pw_name, gr->gr_name);
                 printPermissions(fileStat);
-                printf(" %lld %s", fileStat.st_size, dirpath);
+                printf(" %ld %s", fileStat.st_size, dirpath);
             }
 
             if (acc)
@@ -173,12 +175,12 @@ void listDir(char *trozos[]){
                 } else {
                     printf("%s (enlace simbólico, pero no se pudo obtener el destino)\n", entry->d_name);
                 }
-                
+
             } else {
                 printf("%s\n", entry->d_name);
             }
-            
-            
+
+
         }
 
     }
@@ -187,7 +189,7 @@ void listDir(char *trozos[]){
 }
 
 void cwd(){
-    char cwd[MAXIMUN];
+    char cwd[MAXIMUND];
     getcwd(cwd,sizeof cwd);
     printf("%s\n",cwd);
 }
@@ -290,7 +292,7 @@ void erase(char *trozos[]){
         printf("Debe especificar un archivo o directorio para eliminar\n");
         return;
     }
-    
+
     target = trozos[1];
 
     if (stat(target, &fileStat) == -1)
@@ -306,7 +308,7 @@ void erase(char *trozos[]){
         }else{
             perror("Error al eliminar el archivo");
         }
-        
+
     } else if (S_ISDIR(fileStat.st_mode)){
         DIR *dir = opendir(target);
         if (dir == NULL)
@@ -314,10 +316,10 @@ void erase(char *trozos[]){
             perror("Error al abrir el directorio");
             return;
         }
-        
+
         struct dirent *entry;
         int isEmpty = 1;
-        
+
         while((entry = readdir(dir)) != NULL){
             if (strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0){
                 isEmpty=0;
@@ -337,11 +339,11 @@ void erase(char *trozos[]){
         }else{
             printf("Error: El directorio no está vacío y no se puede eliminar\n");
         }
-        
+
     }else{
         printf("Error: El objetivo no es un archivo ni un directorio\n");
     }
-    
+
 }
 
 void delrec(char *path){
@@ -377,12 +379,12 @@ void delrec(char *path){
             {
                 continue;
             }
-            
+
             snprintf(filepath, sizeof(filepath), "%s/%s", path, entry->d_name);
 
             delrec(filepath);
         }
-        
+
         closedir(dir);
 
         if(rmdir(path) == 0){

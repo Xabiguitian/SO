@@ -17,20 +17,7 @@ void deleteListH(tList *historial){ //funcion para borrar el historial antes de 
     }
 }
 
-bool insertItemH(char commd[] , tList *historial){
 
-    if(historial->lastPos>=MAXIMUND-1){
-        return false;
-    }else{
-        //char * comdau = malloc(sizeof(char)*MAXIMUND);
-        historial->lastPos++; //añadimos en la ultima posicion un "hueco" más en el array.
-        historial->comando[historial->lastPos] = malloc((strlen(commd)+1)*sizeof(char));
-        strcpy(historial->comando[historial->lastPos],commd);
-        return true;
-        free(historial->comando);
-    }
-
-}
 
 void createEmptyListH(tList *historial){
     historial->lastPos=NULLH;
@@ -39,7 +26,7 @@ void createEmptyListH(tList *historial){
 
 char * getItemH(int i, tList historial){
 
-    if(i>=0&&i<MAXIMUND){
+    if(i>=0&&i<=historial.lastPos){
         return historial.comando[i];
     }else{
         return NULL;
@@ -58,12 +45,25 @@ int previousH(int pHist, tList historial){
 bool isEmptyListH(tList historial){
     return historial.lastPos==NULLH;
 }
+bool insertItemH(char commd[] , tList *historial){
 
-/*int nextH(int pHist, tList historial){
-  int i;
-  if(i<=historial.lastPos){
-    return i+1;
+    if(historial->lastPos>=MAXIMUND-1){
+        return false;
     }else{
-      return NULLH;
+        //char * comdau = malloc(sizeof(char)*MAXIMUND);
+        historial->lastPos++; //añadimos en la ultima posicion un "hueco" más en el array.
+        historial->comando[historial->lastPos] = malloc((strlen(commd)+1)*sizeof(char));
+        strcpy(historial->comando[historial->lastPos],commd);
+
+        return true;
+        free(historial->comando);
+    }
+
 }
-}*/
+int nextH(int pHist, tList historial){
+  if(pHist==historial.lastPos){
+    return -1;
+    }else{
+      return ++pHist;
+	}
+}

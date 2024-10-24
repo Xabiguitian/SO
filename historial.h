@@ -38,7 +38,7 @@ void deleteListH(tList *historial);
 int firstH(tList historial);
 int previousH(int pHist, tList historial);
 bool isEmptyListH(tList historial);
-//int nextH(int pHist, tList historial);
+int nextH(int pHist, tList historial);
 
 
 

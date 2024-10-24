@@ -7,6 +7,11 @@
 #include "p0.h"
 #include "p1.h"
 #include "historial.h"
+#include "file.h"
+
+
+
+
 
 
 //FUNCIONES DE LOS COMANDOS
@@ -37,28 +42,6 @@ void pid(){
 //Imprime el pid del padre del proceso del núclep.
 void ppid(){
     printf("PPID: %d\n", getppid());
-}
-
-/*Cambia el directorio de trabajo actual del shell a dir .Cuando se invoca sin aumentos,
-imprime el directorio de trabajo actual .*/
-void cd(char * trozos[]){
-	char cwd[MAXIMUN];
-
-	if(trozos[1]==NULL){
-		if(getcwd(cwd,sizeof cwd)!=NULL){
-    		printf("%s\n",cwd);
-    	}else{
-        	printf("No se puede mostrar el directorio\n");
-    	}
-		return;
-	}else if(strcmp(trozos[1],"..")==0){
-		if(chdir("..")!=0){
-			perror("Error: falta la direccion\n");
-		}
-	}else{
-		if(chdir(trozos[1])!=0)
-			perror("No se puede mostrar el directorio\n");
-	}
 }
 
 //Imprime la fecha actual en el formato DD/MM/AAAA y la fecha actual (-d) hora en el formato hh:mm:ss (-t)
@@ -195,7 +178,7 @@ void infosys(){
     struct utsname infosys;
 
     if(uname(&infosys)==0)
-        printf("Información de la máquina en la que se ejecuta el shell\nArqitectura del sistema:%s\n Sistema operativo:%s,Versión del núcleo:%s\nNombre del host:%s\n",infosys.machine,infosys.sysname,infosys.release, infosys.nodename);
+        printf("Información de la máquina en la que se ejecuta el shell\nArqitectura del sistema:%s\n Sistema operativo:%s\nVersión del núcleo:%s\nNombre del host:%s\n",infosys.machine,infosys.sysname,infosys.release, infosys.nodename);
     //PREGUNTAR COMO DIVIDIR EL PRINTF EN DOS LINEAS!!
 }
 
@@ -206,23 +189,144 @@ void off(){
 }
 
 
+//Cambia el directorio de trabajo actual del shell a dir .Cuando se invoca sin aumentos, imprime el
+// directorio de trabajo actual .
+void cd(char * trozos[]){
+  char cwd[MAX];
+
+if(trozos[1]==NULL){
+  if(getcwd(cwd,sizeof(cwd))!=NULL){
+    printf("%s\n",cwd);
+  }else{
+    perror("No se puede mostrar el directorio.\n");
+  }
+ }else{
+   if(chdir(trozos[1])!=0){
+     perror("No se puede cambiar el directorio.\n");
+    }
+   }
+}
+
+
+
+
 //FUNCIÓN QUE MUESTRA EL HISTORIAL DEL SHELL
-/*void cmdhistoric(char *trozos[],tList * historial){
-    int i;
-    int N = (trozos[1] != NULL) ? strtol(trozos[1], NULL, 10) : 0;
+void cmdhistoric(char *trozos[],tList * historial){
+    int i,j;
 
     if(trozos[1]==NULL){
         for(i=0;i<=last(*historial);i++){
             printf("%s\n",  getItemH(i,*historial));
         }
-    }else if(strcmp(trozos[1],"-")==0){
-        for(i=N;i<=last(*historial);i++){
-            printf("%s\n",getItemH(i,*historial));
-        }
-    }else { // N solo
-        printf("%s\n",getItemH(N,*historial));
-        }else{
-            printf("No se reconoce el comando.\n");
-    }*/
+    }else if(atoi(trozos[1])==0){
+      perror("No hay comando número 0 en el histórico.\n");
+
+    }else if(atoi(trozos[1])>0){
+             if(atoi(trozos[1])>last(*historial)){
+               perror("No se han introducido tantos comandos en el sistema.\n");
+             }else{
+
+                 printf("%s\n",  getItemH(atoi(trozos[1]-1),*historial));
+
+
+             }
+
+    }else if((atoi(trozos[1])<0)){
+              if(abs(atoi(trozos[1]))>last(*historial)+1){
+                perror("No se han introducido tantos comandos en el sistema.\n");
+              }else{
+                 j=abs(atoi(trozos[1]));
+                 for(i=last(*historial)-j+1;i<=last(*historial);i++){
+                   printf("%s\n",  getItemH(i,*historial));
+              	  }
+              }
+
+    }
+} //no reconoce el primer comando
+
+
+
+
+
+
+
+
+
+void Cmd_open(char * tr[], filelist F){
+    int i,df, mode=0;
+
+    if (tr[0]==NULL) {
+       listarFicheros(&F);
+        return;
+    }
+    for (i=1; tr[i]!=NULL; i++)
+      if (!strcmp(tr[i],"cr")) mode|=O_CREAT;
+      else if (!strcmp(tr[i],"ex")) mode|=O_EXCL;
+      else if (!strcmp(tr[i],"ro")) mode|=O_RDONLY;
+      else if (!strcmp(tr[i],"wo")) mode|=O_WRONLY;
+      else if (!strcmp(tr[i],"rw")) mode|=O_RDWR;
+      else if (!strcmp(tr[i],"ap")) mode|=O_APPEND;
+      else if (!strcmp(tr[i],"tr")) mode|=O_TRUNC;
+      else break;
+
+    if ((df=open(tr[0],mode,0777))==-1)
+        perror ("Imposible abrir fichero");
+    else{
+       añadirFicheros(df,tr[0],mode,&F);
+        printf ("Anadida entrada a la tabla ficheros abiertos..................");
+}
+}
+
+
+//FUNCION CLOSE
+void Cmd_close (char *tr[],filelist F){
+    int df;
+
+    if (tr[0]==NULL || (df=atoi(tr[0]))<0) {
+       listarFicheros(&F);
+        return;
+    }
+
+
+    if (close(df)==-1)
+        perror("Inposible cerrar descriptor");
+    else
+       EliminarFicheros(&F);
+}
+
+//FUNCION DUP
+void Cmd_dup (char * tr[],filelist F){
+    int df, duplicado;
+    char aux[MAXNAME],*p;
+
+    if (tr[0]==NULL || (df=atoi(tr[0]))<0) {
+        listarFicheros(&F);
+        return;
+    }
+
+    duplicado=dup(df);
+    if(duplicado==-1){
+      perror("Error al duplicar el descriptor\n");
+      }
+    p=getItemF(df,F);
+    if(p==NULL){
+      perror("No se encontró el archivo asociado al descriptor.\n");
+    }
+    sprintf (aux,"dup %d (%s)",df, p);
+
+
+    tFile newFile;
+    newFile.id=duplicado;
+    newFile.name=strdup(aux);
+    newFile.opening=strdup("Duplicado");
+    newFile.mode=fcntl(duplicado,F_GETFL);
+
+    if(!insertItemF(newFile.name,&F)){
+      perror("Error al añadir el archivo duplicado a la lista de archivos abiertos.\n");
+     }else{
+       printf("%d, asociado a %s \n",duplicado,aux);
+}
+}
+
 
 

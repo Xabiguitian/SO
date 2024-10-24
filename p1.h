@@ -19,6 +19,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <dirent.h>
+#include <errno.h>
 
 //CONSTANTES DEFINIDAS
 #define MAX 1024 //maximo de letras en una palabra
