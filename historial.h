@@ -1,7 +1,6 @@
 //
-// Angela Garcia Sánchez y Xabier Guitián López
+// Created by angela on 24/09/24.
 //
-
 
 #ifndef HISTORIAL_H
 #define HISTORIAL_H
@@ -17,12 +16,12 @@
 
 //DEFINICIÓN DE CONSTANTES
 #define MAXIMUND 4096
-#define MAXIMUN 1024
+#define MAXH 1024
 #define NULLH -1
 
 //DEFFINICIÓN DE TIPOS
 typedef struct  {
-    char *commd[MAXIMUND];
+    char *comando[MAXIMUND];
     int lastPos;
 } tList;
 
@@ -35,7 +34,11 @@ bool insertItemH(char commd[],tList *L);
 void createEmptyListH(tList *historial);
 char *getItemH(int i, tList historial);
 int last(tList historial);
-
+void deleteListH(tList *historial);
+int firstH(tList historial);
+int previousH(int pHist, tList historial);
+bool isEmptyListH(tList historial);
+//int nextH(int pHist, tList historial);
 
 
 

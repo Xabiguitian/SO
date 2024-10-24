@@ -1,184 +1,17 @@
 //
-// Angela Garcia Sánchez y Xabier Guitián López
+// Created by angela on 22/10/24.
 //
 
 //LIBRERÍAS IMPLEMENTADAS
-#include "historial.h"
-#include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <time.h>
-#include <pwd.h>
-#include <grp.h>
-#include <sys/utsname.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <dirent.h>
-
-
-//CONSTANTES DEFINIDAS
-#define MAX 1024
-#define MAXIMUNT 3
-
-
-//INDICE DE FUNCIONES DE LOS COMANDOS
-void imprimirPrompt();
-void leerComando(char *command);
-void processCommandTrocearCadena(char command[],tList *historial, char * trozos[]);
-
-// COMANDOS P0
-void authors(char *trozos[]);
-void pid();
-void ppid();
-void cd(char * trozos[]);
-void cmdate(char *trozos[]);
-void cmdopen();
-//void cmddup();
-void infosys();
-void off();
-void cmdhistoric(char *trozos[], tList * historial);
-void cmdclose(char *trozos[]);
-void help(tList *historial, char * trozos[]);
-
-//P1
-void makefile(char *trozos[]);
-void makedir(char *trozos[]);
-void printPermissions(struct stat fileStat);
-void listFile(char *trozos[]);
-void listDir(char *trozos[]);
-void cwd();
-void reclist (char *trozos[]);
-void revlist (char *trozos[]);
-void erase(char *trozos[]);
-void delrec(char *path);
-
-
-//MAIN
-int main()
-{
-    char command[MAXIMUN];
-    char *trozos;
-    tList historial;
-
-
-    createEmptyListH(&historial);
-
-    while(true) {
-        imprimirPrompt();
-        leerComando(command);
-        processCommandTrocearCadena(command, &historial, &trozos);
-
-    }
-}
-
-
-
-
-//IMPLEMENTACIÓN DE FUNCIONES
-void imprimirPrompt(){
-    printf("# ");
-}
-
-void leerComando(char *command) {
-    fgets(command, MAX, stdin);
-}
-
-
-
-
-//FUNCIÓN PARA TROCEAR LA CADENA
-int TrocearCadena(char * cadena, char * trozos[])
-{ int i=1;
-    if ((trozos[0]=strtok(cadena," \n\t"))==NULL)
-        return 0;
-    while ((trozos[i]=strtok(NULL," \n\t"))!=NULL)
-        i++;
-    return i;
-}
-
-
-
-
-//FUNCIÓNES PARA PROCESAR LOS COMANDOS
-void processCommand(char *command, tList *historial, char * trozos[]) {
-    command=trozos[0];
-
-    if(strcmp(command, "authors")==0) {
-        authors(trozos);
-    }else if(strcmp(command,"pid")==0) {
-        pid();
-    }else if(strcmp(command,"ppid")==0) {
-        ppid();
-    }else if(strcmp(command,"cd")==0) {
-        cd(trozos);
-    }else if(strcmp(command,"date")==0){
-        cmdate(trozos);
-    }else if(strcmp(command,"open")==0) {
-        cmdopen();
-    }else if(strcmp(command, "dup")==0) {
-        //cmddup();
-    }else if(strcmp(command, "close")==0) {
-        cmdclose(trozos);
-    }else if(strcmp(command,"infosys")==0) {
-        infosys();
-    }else if(strcmp(command,"help")==0) {
-        help(historial, trozos);
-    }else if(strcmp(command,"quit")==0||strcmp(command,"exit")==0||strcmp(command,"bye")==0) {
-        off();
-    }else if(strcmp(command,"historic")==0) {
-        cmdhistoric(trozos,historial);
-    }else if (strcmp(command,"makefile")==0){
-        makefile(trozos);
-    }else if (strcmp(command,"makedir")==0){
-        makedir(trozos);
-    }else if (strcmp(command,"listfile")==0){
-        listFile(trozos);
-    }else if (strcmp(command,"listdir")==0){
-        listDir(trozos);
-    }else if (strcmp(command,"cwd")==0){
-        cwd();
-    }else if (strcmp(command,"reclist")==0){
-        reclist(trozos);
-    }else if (strcmp(command,"revlist")==0){
-        revlist(trozos);
-    }else if (strcmp(command,"erase")==0){
-        erase(trozos);
-    }else if (strcmp(command,"delrec")==0){
-        if (trozos[1] != NULL)
-        {
-            delrec(trozos[1]);
-        }else{
-            printf("Error: Se debe especificar un archivo o directorio para eliminar recursivamente\n");
-        }
-    }else
-        printf("No se reconoce el comando.\n");
-}
-
-
-
-void processCommandTrocearCadena(char command[],tList *historial, char * trozos[]) {
-    char *comdau=malloc(sizeof(*command)); //Creacion de una variable auxiliar para evitar perder
-    // la información del comando
-    strcpy(comdau,command);
-
-    insertItemH(comdau,historial);
-    TrocearCadena(comdau, trozos);
-    processCommand(command,historial, trozos);
-
-
-    free(comdau); //MIRAR SI AQUI HAY QUE HACER UN NULL DESPUÉS DEL FREE!!
-}
-
-
-
-
-
-
+#include "p0.h"
+#include "p1.h"
+#include "historial.h"
 
 
 //FUNCIONES DE LOS COMANDOS
+
+//Imprime el nombre y los logins de los autores del núcleo
 void authors(char *trozos[]){
     if(trozos[1]==NULL) {
         printf("Ángela García Sánchez (angela.gsanchez@udc.es)\nXabier Guitián López (x.guitian@udc.es)\n");
@@ -205,17 +38,6 @@ void pid(){
 void ppid(){
     printf("PPID: %d\n", getppid());
 }
-
-
-int trocearDireccion(char * cadena, char * trozos[]){
-  int i=1;
-    if ((trozos[0]=strtok(cadena,"/"))==NULL)
-        return 0;
-    while ((trozos[i]=strtok(NULL,"/"))!=NULL)
-        i++;
-    return i;
-}
-
 
 /*Cambia el directorio de trabajo actual del shell a dir .Cuando se invoca sin aumentos,
 imprime el directorio de trabajo actual .*/
@@ -316,46 +138,11 @@ void cmdate(char *trozos[]){
     }
 }
 
-
-
-//FUNCIÓN QUE MUESTRA EL HISTORIAL DEL SHELL
-void cmdhistoric(char *trozos[], tList *historial) {
-    if (trozos[1] == NULL) {
-        int i;
-        for (i = 0; i <= last(*historial); i++) {
-            printf("%d->%s", i, getItemH(i, *historial));
-        }
-    }
-    else if (trozos[1][0] == '-' && (trozos[1][1] >= '0' && trozos[1][1] <= '9')) {
-        long int p = strtol(&trozos[1][1], NULL, 10);
-        if (p > 0 && p <= last(*historial)) {
-            int i;
-            for (i = last(*historial) - p + 1; i <= last(*historial); i++) {
-                printf("%d->%s", i, getItemH(i,*historial));
-            }
-        } else {
-            printf("No hay suficientes elementos en el historial para mostrar los últimos %ld comandos.\n", p);
-        }
-    }
-    else if (trozos[1][0] >= '0' && trozos[1][0] <= '9') {
-        long int p = strtol(trozos[1], NULL, 10);
-        if (p <= last(*historial)) {
-            printf("El comando %ld es: %s", p, getItemH(p, *historial));
-        } else {
-            printf("No existe %ld en el histórico.\n", p);
-        }
-    }
-    // Comando no válido
-    else {
-        printf("Comando no reconocido.\n");
-    }
-}
-
-  //ayuda muestra una lista de comandos disponibles. ayuda cmd da una breve ayuda
+ //ayuda muestra una lista de comandos disponibles. ayuda cmd da una breve ayuda
     //sobre el uso del comando cmd
 void help(tList *historial, char * trozos[]){
   if(trozos[1]==NULL){
-    printf("Comandos disponibles: ...\n");
+    printf("Comandos disponibles: authors\npid\nppid\ncd\ndate\nopen\ndup\nclose\ninfosys\nquit\nhistoric\nmakefile\nmakedir\ncwd\nlistfile\nlistdir\nreclist\nrevlist\nerase\ndelrec\nquit\nexit\nbye\n");
   }
   else if(strcmp(trozos[1], "authors")==0) {
   	printf("Enseña el nombre, apellidos y de los logins de los autores.\n");
@@ -379,472 +166,63 @@ void help(tList *historial, char * trozos[]){
 	printf("Sale del shell.\n");
   }else if(strcmp(trozos[1],"historic")==0) {
     printf("Enseña el historial de los comando usados en el shell.\nHistoric N, imprime los N últimos elementos del historic.\nHistoric N imprime el -N elemento del historial.\n");
+  }else if(strcmp(trozos[1], "makefile")==0) {
+    printf("Crea un archivo\n");
+  }else if(strcmp(trozos[1],"makedir")==0) {
+    printf("Crea un directorio\n");
+  }else if(strcmp(trozos[1],"cwd")==0) {
+    printf("Imprime la ruta del directorio actual\n");
+  }else if(strcmp(trozos[1],"listfile")==0) {
+    printf("Proporciona información de archivos y directorios\n");
+  }else if(strcmp(trozos[1],"listdir")==0) {
+    printf("Lista el contenido de un directorio");
+  }else if(strcmp(trozos[1],"reclist")==0) {
+    printf("Lista los directorios recursivamente (subdirectorios después)\n");
+  }else if(strcmp(trozos[1],"revlist")==0) {
+    printf("Lista los directorios recursivamente (subdirectorios antes)\n");
+  }else if(strcmp(trozos[1],"erase")==0) {
+    printf("Elimina archivos y directorios vacíos\n");
+  }else if(strcmp(trozos[1],"delrec")==0) {
+    printf("Elimina archivos y directorios tanto que estén vacíos como no (eliminando los respectivos subdirectorios)\n");
   }else
     printf("No se reconoce el comando.\n");
 }
 
 
-
-
-    //Imprime información en la máquina que ejecuta el shell (obtenida a través de
-    // la llamada al sistema/función de biblioteca uname)
+//Imprime información en la máquina que ejecuta el shell (obtenida a través de
+// la llamada al sistema/función de biblioteca uname)
 void infosys(){
-  struct utsname infosys;
+    struct utsname infosys;
 
-  if(uname(&infosys)==0)
-    printf("Información de la máquina en la que se ejecuta el shell\nArqitectura del sistema:%s\n Sistema operativo:%s,Versión del núcleo:%s,Nombre del host:%s\n",infosys.machine,infosys.sysname,infosys.release, infosys.nodename);
-     //PREGUNTAR COMO DIVIDIR EL PRINTF EN DOS LINEAS!!
+    if(uname(&infosys)==0)
+        printf("Información de la máquina en la que se ejecuta el shell\nArqitectura del sistema:%s\n Sistema operativo:%s,Versión del núcleo:%s\nNombre del host:%s\n",infosys.machine,infosys.sysname,infosys.release, infosys.nodename);
+    //PREGUNTAR COMO DIVIDIR EL PRINTF EN DOS LINEAS!!
 }
-
-
-
-
-
 
 
 //función para salir del shell.
 void off(){
-	exit(0);
+    exit(0);
 }
 
 
+//FUNCIÓN QUE MUESTRA EL HISTORIAL DEL SHELL
+/*void cmdhistoric(char *trozos[],tList * historial){
+    int i;
+    int N = (trozos[1] != NULL) ? strtol(trozos[1], NULL, 10) : 0;
 
-
-
-
-
-
-	//Cierra el descriptor del archivo df y elimina el elemento correspondiente de la lista
-void cmdclose(char *trozos[]){
-  int df;
-
-  if (trozos[0]==NULL || (df=atoi(trozos[0]))<0) { /*no hay parametro*/
-      //..............ListarFicherosAbiertos............... /*o el descriptor es menor que 0*/
-        return;
-  }
-
-
-  if (close(df)==-1)
-    perror("Imposible cerrar descriptor");
-  else{
-      // ........EliminarDeFicherosAbiertos......
-  }
-}
-
-void cmdopen(){
-
-}
-
-
-
-
-    //Duplica el descriptor del archivo df (usando la llamada al sistema dup, creando el
-    //nueva entrada correspondiente en la lista de archivos
-    /*void cmddup(char * trozos[]){
-    int df, duplicado;
-    char aux[MAXNAME],*p;
-
-    if (trozos[0]==NULL || (df=atoi(trozos[0]))<0) { no hay parametro
-        ListOpenFiles(-1);                 o el descriptor es menor que 0
-        return;
-    }
-
-    duplicado=dup(df);
-   p=.....NombreFicheroDescriptor(df).......;
-    sprintf (aux,"dup %d (%s)",df, p);
-    //.......AnadirAFicherosAbiertos......duplicado......aux.....fcntl(duplicado,F_GETFL).....;
-}
+    if(trozos[1]==NULL){
+        for(i=0;i<=last(*historial);i++){
+            printf("%s\n",  getItemH(i,*historial));
+        }
+    }else if(strcmp(trozos[1],"-")==0){
+        for(i=N;i<=last(*historial);i++){
+            printf("%s\n",getItemH(i,*historial));
+        }
+    }else { // N solo
+        printf("%s\n",getItemH(N,*historial));
+        }else{
+            printf("No se reconoce el comando.\n");
     }*/
 
 
-void makefile(char *trozos[]){
-
-    if (trozos[1] == NULL) {
-       printf("Error al crear el archivo %s\n", trozos[1]);
-    }
-
-    FILE *file = fopen(trozos[1], "w");
-
-    if (file == NULL) {
-      perror("Error al abrir el archivo");
-      return;
-    }
-
-    printf("Archivo %s creado exitosamente\n", trozos[1]);
-    fclose(file);
-
-}
-
-void makedir(char *trozos[]){
-    if (trozos[1] == NULL) {
-        printf("Error al crear el directorio %s\n", trozos[1]);
-    }
-
-    if (mkdir(trozos[1], 0700) == -1) {
-        perror("Error al crear el directorio");
-        return;
-    }
-
-    printf("Directorio %s creado exitosamente\n", trozos[1]);
-}
-
-void printPermissions(struct stat fileStat){
-    printf((S_ISDIR(fileStat.st_mode)) ? "d" : "-");
-    printf((fileStat.st_mode & S_IRUSR) ? "r" : "-");
-    printf((fileStat.st_mode & S_IWUSR) ? "w" : "-");
-    printf((fileStat.st_mode & S_IXUSR) ? "x" : "-");
-    printf((fileStat.st_mode & S_IRGRP) ? "r" : "-");
-    printf((fileStat.st_mode & S_IWGRP) ? "w" : "-");
-    printf((fileStat.st_mode & S_IXGRP) ? "x" : "-");
-    printf((fileStat.st_mode & S_IROTH) ? "r" : "-");
-    printf((fileStat.st_mode & S_IWOTH) ? "w" : "-");
-    printf((fileStat.st_mode & S_IXOTH) ? "x" : "-");
-}
-
-void listFile(char *trozos[]){
-    struct stat fileStat;
-    char *nombre, cwd[MAXIMUN];
-    int lon = 0, acc = 0, link = 0;
-
-    if (trozos[1] == NULL){
-        getcwd(cwd,sizeof cwd);
-        nombre = cwd;
-    } else {
-        for(int i=1;trozos[i] != 0;i++){
-        if (strcmp(trozos[i], "-long") == 0) lon =1;
-        else if (strcmp(trozos[i], "-acc") == 0) acc =1;
-        else if (strcmp(trozos[i], "-link") == 0) link =1;
-        else nombre = trozos[i];
-    }
-    }
-
-    if (stat(nombre, &fileStat) == -1){
-        perror("Error al obtener información del archivo o directorio");
-        return;
-    }
-    
-
-    if (lon){
-        struct passwd *pw = getpwuid(fileStat.st_uid);
-        struct group *gr = getgrgid(fileStat.st_gid);
-
-        if (pw == NULL || gr == NULL) {
-            perror("Error al obtener información de usuario o grupo");
-            return;
-        }
-
-		printf("%s %s %s ", ctime(&fileStat.st_mtime), getpwuid(fileStat.st_uid)->pw_name, getgrgid(fileStat.st_gid)->gr_name);
-        printPermissions(fileStat);
-        printf(" %lld %s", fileStat.st_size, nombre);
-    }
-
-    if (acc){
-        printf("Último acceso: %s\n", ctime(&fileStat.st_atime));
-    }
-
-    if (link && S_ISLNK(fileStat.st_mode)) {
-        char linkTarget[MAXIMUN];
-        ssize_t len = readlink(nombre, linkTarget, sizeof(linkTarget) - 1);
-
-        if (len != -1) {
-            linkTarget[len] = '\0';
-            printf("%s -> %s\n", nombre, linkTarget);
-        } else {
-            perror("Error al leer el enlace simbólico");
-        }
-    }
-    printf("%lld %s\n", fileStat.st_size, nombre);
-}
-
-void listDir(char *trozos[]){
-    DIR *dir;
-    struct dirent *entry;
-    struct stat fileStat;
-    char *dirpath;
-    int hid = 0,lon = 0, acc = 0, link = 0;
-
-    if (trozos[1]==NULL)
-    {
-        dirpath = ".";
-    } else{
-        for(int i=1;trozos[i] != NULL;i++){
-            if (strcmp(trozos[i], "-hid") == 0) hid =1;
-            else if (strcmp(trozos[i], "-long") == 0) lon =1;
-            else if (strcmp(trozos[i], "-acc") == 0) acc =1;
-            else if (strcmp(trozos[i], "-link") == 0) link =1;
-            else dirpath = trozos[i];
-        }
-    }
-    
-
-    if ((dir = opendir(dirpath)) == NULL){
-        perror("Error al abrir el directorio");
-        return;
-    }
-
-    printf("Archivos y directorios en %s:\n", dirpath);
-    while ((entry = readdir(dir)) != NULL) {
-        if(!hid && entry->d_name[0] == '.'){
-            continue;
-        }
-
-        char filepath[MAX];
-        snprintf(filepath, sizeof(filepath), "%s/%s", dirpath, entry->d_name);
-
-        if(stat(filepath, &fileStat) == -1){
-            perror("Error al obtener información del archivo");
-            continue;
-        }
-
-        if (S_ISDIR(fileStat.st_mode) || S_ISLNK(fileStat.st_mode)){
-            if (lon)
-            {
-                struct passwd *pw = getpwuid(fileStat.st_uid);
-                struct group *gr = getgrgid(fileStat.st_gid);
-
-                if (pw == NULL || gr == NULL) {
-                    perror("Error al obtener información de usuario/grupo");
-                    continue;
-                }
-                printf("%s %ld (%ld) %s %s ", ctime(&fileStat.st_atime), (long)fileStat.st_nlink, (long)fileStat.st_ino, pw->pw_name, gr->gr_name);
-                printPermissions(fileStat);
-                printf(" %lld %s", fileStat.st_size, dirpath);
-            }
-
-            if (acc)
-            {
-                printf("%s", ctime(&fileStat.st_atime));
-            }
-
-            if (link && S_ISLNK(fileStat.st_mode))
-            {
-                char link[MAX];
-                ssize_t len = readlink(filepath, link, sizeof(link) - 1);
-                if (len != -1)
-                {
-                    link[len] = '\0';
-                    printf("%s -> %s\n", entry->d_name, link);
-                } else {
-                    printf("%s (enlace simbólico, pero no se pudo obtener el destino)\n", entry->d_name);
-                }
-                
-            } else {
-                printf("%s\n", entry->d_name);
-            }
-            
-            
-        }
-
-    }
-
-    closedir(dir);
-}
-
-void cwd(){
-    char cwd[MAXIMUN];
-    getcwd(cwd,sizeof cwd);
-    printf("%s\n",cwd);
-}
-
-void reclist (char *trozos[]){
-    DIR *dir;
-    struct dirent *entry;
-    struct stat fileStat;
-    char *direccion;
-
-    if (trozos[1] == NULL) {
-        direccion = ".";
-    } else {
-        direccion = trozos[1];
-    }
-
-    if ((dir = opendir(direccion)) == NULL) {
-        perror("Error al abrir el directorio");
-        return;
-    }
-
-    printf("Contenido de: %s\n", direccion);
-    while ((entry = readdir(dir)) != NULL) {
-        if(entry->d_name[0] == '.'){
-            continue;
-        }
-        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
-            continue;
-        }
-
-        char direccionArchivo[MAX];
-        snprintf(direccionArchivo, sizeof(direccionArchivo), "%s/%s", direccion, entry->d_name);
-
-        if (stat(direccionArchivo, &fileStat) == -1) {
-            perror("Error al obtener información del archivo");
-            continue;
-        }
-
-        if (S_ISDIR(fileStat.st_mode)) {
-            printf("%s\n", direccionArchivo);
-            char *trozos2[] = {NULL, direccionArchivo};
-            reclist(trozos2);
-        }
-    }
-
-    closedir(dir);
-}
-
-void revlist (char *trozos[]){
-    DIR *dir;
-    struct dirent *entry;
-    struct stat fileStat;
-    char *direccion;
-
-    if (trozos[1] == NULL) {
-        direccion = ".";
-    } else {
-        direccion = trozos[1];
-    }
-
-    if ((dir = opendir(direccion)) == NULL) {
-        perror("Error al abrir el directorio");
-        return;
-    }
-
-    printf("Contenido de: %s\n", direccion);
-    while ((entry = readdir(dir)) != NULL) {
-        if(entry->d_name[0] == '.'){
-            continue;
-        }
-        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
-            continue;
-        }
-
-        char direccionArchivo[MAX];
-        snprintf(direccionArchivo, sizeof(direccionArchivo), "%s/%s", direccion, entry->d_name);
-
-        if (stat(direccionArchivo, &fileStat) == -1) {
-            perror("Error al obtener información del archivo");
-            continue;
-        }
-
-        if (S_ISDIR(fileStat.st_mode)) {
-            //Todo igual que en reclist pero el printf se hace después
-            char *trozos2[] = {NULL, direccionArchivo};
-            reclist(trozos2);
-            printf("%s\n", direccionArchivo);
-        }
-    }
-
-    closedir(dir);
-}
-
-void erase(char *trozos[]){
-    struct stat fileStat;
-    char *target;
-
-    if (trozos[1] == NULL)
-    {
-        printf("Debe especificar un archivo o directorio para eliminar\n");
-        return;
-    }
-    
-    target = trozos[1];
-
-    if (stat(target, &fileStat) == -1)
-    {
-        perror("Error al obtener información del archivo o directorio");
-        return;
-    }
-
-    if (S_ISREG(fileStat.st_mode)){
-        if (remove(target) == 0)
-        {
-            printf("Archivo eliminado: %s\n", target);
-        }else{
-            perror("Error al eliminar el archivo");
-        }
-        
-    } else if (S_ISDIR(fileStat.st_mode)){
-        DIR *dir = opendir(target);
-        if (dir == NULL)
-        {
-            perror("Error al abrir el directorio");
-            return;
-        }
-        
-        struct dirent *entry;
-        int isEmpty = 1;
-        
-        while((entry = readdir(dir)) != NULL){
-            if (strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0){
-                isEmpty=0;
-                break;
-            }
-        }
-        closedir(dir);
-
-        if (isEmpty)
-        {
-            if (remove(target) == 0)
-            {
-                printf("Directorio vacío eliminado: %s\n", target);
-            } else {
-                perror("Error al eliminar el directorio");
-            }
-        }else{
-            printf("Error: El directorio no está vacío y no se puede eliminar\n");
-        }
-        
-    }else{
-        printf("Error: El objetivo no es un archivo ni un directorio\n");
-    }
-    
-}
-
-void delrec(char *path){
-    struct stat fileStat;
-
-    if (stat(path, &fileStat) == -1)
-    {
-        perror("Error al obtener información del archivo o directorio");
-        return;
-    }
-
-    if (S_ISREG(fileStat.st_mode))
-    {
-        if (remove(path) == 0)
-        {
-            printf("Archivo eliminado: %s\n", path);
-        }else{
-            perror("Error al eliminar el archivo");
-        }
-    }else if(S_ISDIR(fileStat.st_mode)){
-        DIR *dir = opendir(path);
-        if(dir == NULL){
-            perror("Error al abrir el directorio");
-            return;
-        }
-
-        struct dirent *entry;
-        char filepath[MAX];
-
-        while ((entry = readdir(dir)) != NULL)
-        {
-            if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
-            {
-                continue;
-            }
-            
-            snprintf(filepath, sizeof(filepath), "%s/%s", path, entry->d_name);
-
-            delrec(filepath);
-        }
-        
-        closedir(dir);
-
-        if(rmdir(path) == 0){
-            printf("Directorio eliminado: %s\n", path);
-        }else {
-            perror("Error al eliminar el directorio");
-        }
-    } else {
-        printf("Error: El objetivo no es un archivo ni un directorio\n");
-    }
-}
