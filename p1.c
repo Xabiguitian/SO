@@ -1,6 +1,3 @@
-//
-// Created by angela on 22/10/24.
-//
 #include "p1.h"
 #include "historial.h"
 #include "p0.h"
@@ -20,15 +17,15 @@ void makefile(char *trozos[]){
 	int df;
 
     if (trozos[1] == NULL) {
-       printf("Error al crear el archivo\n");
-       return;
+        printf("Error al crear el archivo\n");
+        return;
     }
 
     df = open(trozos[1], O_CREAT | O_EXCL, 0664);
 
     if (df == -1) {
-      perror("Error al abrir el archivo");
-      return;
+        perror("Error al abrir el archivo");
+        return;
     }
 
     printf("Archivo %s creado exitosamente\n", trozos[1]);
@@ -63,7 +60,6 @@ void printPermissions(struct stat fileStat){
     printf((fileStat.st_mode & S_IXOTH) ? "x" : "-");
 }
 
-// Funcion auxiliar para stat y list:
 void printStatInfo(const char * name, const struct stat *st, struct optionBool opciones) {
     struct passwd *userInfo;
     struct group *groupInfo;
@@ -90,7 +86,7 @@ void printStatInfo(const char * name, const struct stat *st, struct optionBool o
         printPermissions(*st);
     }
 
-    printf("%9ld %s", st->st_size, name);
+    printf("%9lld %s", st->st_size, name);
 
     if(opciones.linkOption && opciones.longOption && S_ISLNK(st->st_mode)) {
 
@@ -101,6 +97,11 @@ void printStatInfo(const char * name, const struct stat *st, struct optionBool o
     }
 
     printf("\n");
+}
+
+void formatDate(char *buffer, size_t size, time_t modTime) {
+    struct tm *timeinfo = localtime(&modTime);
+    strftime(buffer, size, "%Y/%m/%d-%H:%M", timeinfo);
 }
 
 void listFile(char * tr[]) {
@@ -118,7 +119,6 @@ void listFile(char * tr[]) {
 
     for (i = 1; tr[i] != NULL; i++) {
         if (tr[i][0] == '-') {
-            // Opcion detectada
             if (tr[i][2] == 'o')
                 opciones.longOption = true;
             else if (tr[i][1] == 'a')
@@ -154,22 +154,26 @@ void listDir(char *trozos[]){
         cwd();
         return;
     } else{
-        for(int i=1;trozos[i] != NULL;i++){
+        int i;
+        for(i=1;trozos[i] != NULL;i++){
+            if (strcmp(trozos[i], "-hid") == 0 || strcmp(trozos[i], "-long") == 0 ||strcmp(trozos[i], "-acc") == 0 ||strcmp(trozos[i], "-link") == 0)
+            {
             if (strcmp(trozos[i], "-hid") == 0) hid =1;
-            else if (strcmp(trozos[i], "-long") == 0) lon =1;
-            else if (strcmp(trozos[i], "-acc") == 0) acc =1;
-            else if (strcmp(trozos[i], "-link") == 0) link =1;
-            else dirpath = trozos[i];
+            if (strcmp(trozos[i], "-long") == 0) lon =1;
+            if (strcmp(trozos[i], "-acc") == 0) acc =1;
+            if (strcmp(trozos[i], "-link") == 0) link =1;
+            }else {
+                dirpath = trozos[i];
+            }
         }
     }
-
 
     if ((dir = opendir(dirpath)) == NULL){
         perror("Error al abrir el directorio");
         return;
     }
 
-    printf("Archivos y directorios en %s:\n", dirpath);
+    printf("********** %s:\n", dirpath);
     while ((entry = readdir(dir)) != NULL) {
         if(!hid && entry->d_name[0] == '.'){
             continue;
@@ -183,27 +187,25 @@ void listDir(char *trozos[]){
             continue;
         }
 
-        
+        if (lon || acc || link || hid)
+        {
             if (lon)
             {
-                struct passwd *pw = getpwuid(fileStat.st_uid);
-                struct group *gr = getgrgid(fileStat.st_gid);
-
-                if (pw == NULL || gr == NULL) {
-                    perror("Error al obtener información de usuario/grupo");
-                    continue;
-                }
-                printf("%s %ld (%ld) %s %s ", ctime(&fileStat.st_atime), (long)fileStat.st_nlink, (long)fileStat.st_ino, pw->pw_name, gr->gr_name);
-                printPermissions(fileStat);
-                printf(" %ld %s", fileStat.st_size, dirpath);
+            char date[20];
+            formatDate(date, sizeof(date), fileStat.st_mtime);
+            struct passwd *pw = getpwuid(fileStat.st_uid);
+            struct group *gr = getgrgid(fileStat.st_gid);
+            printf("%s   %ld (%ld)     %s     %s ", date, (long)fileStat.st_nlink, (long)fileStat.st_ino, pw->pw_name, gr->gr_name);
+            printPermissions(fileStat);
+            printf("     %lld %s\n", (long long)fileStat.st_size, entry->d_name);
             }
 
-            if (acc)
+            if (acc && !lon)
             {
                 printf("%s", ctime(&fileStat.st_atime));
             }
 
-            if (link && S_ISLNK(fileStat.st_mode))
+            if (link && S_ISLNK(fileStat.st_mode) && !lon)
             {
                 char link[MAX];
                 ssize_t len = readlink(filepath, link, sizeof(link) - 1);
@@ -215,9 +217,10 @@ void listDir(char *trozos[]){
                     printf("%s (enlace simbólico, pero no se pudo obtener el destino)\n", entry->d_name);
                 }
 
-            } else {
-                printf("%s\n", entry->d_name);
-            }
+            } 
+        }else {
+            printf("%s\n", entry->d_name);
+        }
 
     }
 
@@ -230,16 +233,25 @@ void cwd(){
     printf("%s\n",cwd);
 }
 
-void reclist (char *trozos[]){
+void reclist(char *trozos[]) {
     DIR *dir;
     struct dirent *entry;
     struct stat fileStat;
-    char *direccion;
+    char *direccion = ".";
+    int hid = 0, lon = 0, acc = 0, link = 0;
 
     if (trozos[1] == NULL) {
-        direccion = ".";
+        cwd();
+        return;
     } else {
         direccion = trozos[1];
+        for (int i = 1; trozos[i] != NULL; i++) {
+            if (strcmp(trozos[i], "-hid") == 0) hid = 1;
+            else if (strcmp(trozos[i], "-long") == 0) lon = 1;
+            else if (strcmp(trozos[i], "-acc") == 0) acc = 1;
+            else if (strcmp(trozos[i], "-link") == 0) link = 1;
+            else direccion = trozos[i];
+        }
     }
 
     if ((dir = opendir(direccion)) == NULL) {
@@ -247,43 +259,115 @@ void reclist (char *trozos[]){
         return;
     }
 
-    printf("Contenido de: %s\n", direccion);
+    printf("\n***********%s\n", direccion);
+
+    struct dirent *archivos[1024];
+    struct dirent *carpetas[1024];
+    int numArchivos = 0, numCarpetas = 0;
+
     while ((entry = readdir(dir)) != NULL) {
-        if(entry->d_name[0] == '.'){
-            continue;
-        }
-        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
-            continue;
-        }
+        if (!hid && entry->d_name[0] == '.') continue;
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) continue;
 
         char direccionArchivo[MAX];
         snprintf(direccionArchivo, sizeof(direccionArchivo), "%s/%s", direccion, entry->d_name);
 
-        if (stat(direccionArchivo, &fileStat) == -1) {
+        if (lstat(direccionArchivo, &fileStat) == -1) {
             perror("Error al obtener información del archivo");
             continue;
         }
 
         if (S_ISDIR(fileStat.st_mode)) {
-            printf("%s\n", direccionArchivo);
-            char *trozos2[] = {NULL, direccionArchivo};
-            reclist(trozos2);
+            carpetas[numCarpetas++] = entry;
+        } else {
+            archivos[numArchivos++] = entry;
         }
     }
 
+    for (int i = 0; i < numArchivos; i++) {
+        entry = archivos[i];
+        char direccionArchivo[MAX];
+        snprintf(direccionArchivo, sizeof(direccionArchivo), "%s/%s", direccion, entry->d_name);
+
+        if (lstat(direccionArchivo, &fileStat) == -1) {
+            perror("Error al obtener información del archivo");
+            continue;
+        }
+
+        if (lon) {
+            char date[20];
+            formatDate(date, sizeof(date), fileStat.st_mtime);
+            struct passwd *pw = getpwuid(fileStat.st_uid);
+            struct group *gr = getgrgid(fileStat.st_gid);
+            printf("%s   %ld (%ld)     %s     %s ", date, (long)fileStat.st_nlink, (long)fileStat.st_ino, pw->pw_name, gr->gr_name);
+            printPermissions(fileStat);
+            printf("     %lld %s\n", (long long)fileStat.st_size, entry->d_name);
+        } else {
+            printf("%lld %s\n", (long long)fileStat.st_size, entry->d_name);
+        }
+
+        if (acc) printf(" Último acceso: %s", ctime(&fileStat.st_atime));
+    }
+
+    for (int i = 0; i < numCarpetas; i++) {
+        entry = carpetas[i];
+        char direccionArchivo[MAX];
+        snprintf(direccionArchivo, sizeof(direccionArchivo), "%s/%s", direccion, entry->d_name);
+
+        if (lstat(direccionArchivo, &fileStat) == -1) {
+            perror("Error al obtener información del archivo");
+            continue;
+        }
+
+        if (lon) {
+            char date[20];
+            formatDate(date, sizeof(date), fileStat.st_mtime);
+            struct passwd *pw = getpwuid(fileStat.st_uid);
+            struct group *gr = getgrgid(fileStat.st_gid);
+            printf("%s   %ld (%ld)     %s     %s ", date, (long)fileStat.st_nlink, (long)fileStat.st_ino, pw->pw_name, gr->gr_name);
+            printPermissions(fileStat);
+            printf("     %lld %s\n", (long long)fileStat.st_size, entry->d_name);
+        } else {
+            printf("%lld %s\n", (long long)fileStat.st_size, entry->d_name);
+        }
+
+        if (acc) printf(" Último acceso: %s", ctime(&fileStat.st_atime));
+
+        char *newTrozos[6];
+        int argIndex = 0;
+
+        if (lon) newTrozos[argIndex++] = "-long";
+        if (acc) newTrozos[argIndex++] = "-acc";
+        if (link) newTrozos[argIndex++] = "-link";
+        if (hid) newTrozos[argIndex++] = "-hid";
+        newTrozos[argIndex++] = direccionArchivo;
+        newTrozos[argIndex] = NULL;
+
+        reclist(newTrozos);
+    }
     closedir(dir);
 }
 
-void revlist (char *trozos[]){
+
+void revlist(char *trozos[]) {
     DIR *dir;
     struct dirent *entry;
     struct stat fileStat;
-    char *direccion;
+    char *direccion = ".";
+    int hid = 0, lon = 0, acc = 0, link = 0;
 
     if (trozos[1] == NULL) {
-        direccion = ".";
+        cwd();
+        return;
     } else {
         direccion = trozos[1];
+        for (int i = 1; trozos[i] != NULL; i++) {
+            if (strcmp(trozos[i], "-hid") == 0) hid = 1;
+            else if (strcmp(trozos[i], "-long") == 0) lon = 1;
+            else if (strcmp(trozos[i], "-acc") == 0) acc = 1;
+            else if (strcmp(trozos[i], "-link") == 0) link = 1;
+            else direccion = trozos[i];
+        }
     }
 
     if ((dir = opendir(direccion)) == NULL) {
@@ -291,33 +375,95 @@ void revlist (char *trozos[]){
         return;
     }
 
-    printf("Contenido de: %s\n", direccion);
+    printf("\n***********%s\n", direccion);
+
+    struct dirent *archivos[1024];
+    struct dirent *carpetas[1024];
+    int numArchivos = 0, numCarpetas = 0;
+
     while ((entry = readdir(dir)) != NULL) {
-        if(entry->d_name[0] == '.'){
-            continue;
-        }
-        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
-            continue;
-        }
+        if (!hid && entry->d_name[0] == '.') continue;
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) continue;
 
         char direccionArchivo[MAX];
         snprintf(direccionArchivo, sizeof(direccionArchivo), "%s/%s", direccion, entry->d_name);
 
-        if (stat(direccionArchivo, &fileStat) == -1) {
+        if (lstat(direccionArchivo, &fileStat) == -1) {
             perror("Error al obtener información del archivo");
             continue;
         }
 
         if (S_ISDIR(fileStat.st_mode)) {
-            //Todo igual que en reclist pero el printf se hace después
-            char *trozos2[] = {NULL, direccionArchivo};
-            reclist(trozos2);
-            printf("%s\n", direccionArchivo);
+            carpetas[numCarpetas++] = entry;
+        } else {
+            archivos[numArchivos++] = entry;
         }
     }
 
+    for (int i = 0; i < numCarpetas; i++) {
+        entry = carpetas[i];
+        char direccionArchivo[MAX];
+        snprintf(direccionArchivo, sizeof(direccionArchivo), "%s/%s", direccion, entry->d_name);
+
+        if (lstat(direccionArchivo, &fileStat) == -1) {
+            perror("Error al obtener información del archivo");
+            continue;
+        }
+
+        if (lon) {
+            char date[20];
+            formatDate(date, sizeof(date), fileStat.st_mtime);
+            struct passwd *pw = getpwuid(fileStat.st_uid);
+            struct group *gr = getgrgid(fileStat.st_gid);
+            printf("%s   %ld (%ld)     %s     %s ", date, (long)fileStat.st_nlink, (long)fileStat.st_ino, pw->pw_name, gr->gr_name);
+            printPermissions(fileStat);
+            printf("     %lld %s\n", (long long)fileStat.st_size, entry->d_name);
+        } else {
+            printf("%lld %s\n", (long long)fileStat.st_size, entry->d_name);
+        }
+
+        if (acc) printf(" Último acceso: %s", ctime(&fileStat.st_atime));
+
+        char *newTrozos[6];
+        int argIndex = 0;
+
+        if (lon) newTrozos[argIndex++] = "-long";
+        if (acc) newTrozos[argIndex++] = "-acc";
+        if (link) newTrozos[argIndex++] = "-link";
+        if (hid) newTrozos[argIndex++] = "-hid";
+        newTrozos[argIndex++] = direccionArchivo;
+        newTrozos[argIndex] = NULL;
+
+        reclist(newTrozos);
+    }
+
+    for (int i = 0; i < numArchivos; i++) {
+        entry = archivos[i];
+        char direccionArchivo[MAX];
+        snprintf(direccionArchivo, sizeof(direccionArchivo), "%s/%s", direccion, entry->d_name);
+
+        if (lstat(direccionArchivo, &fileStat) == -1) {
+            perror("Error al obtener información del archivo");
+            continue;
+        }
+
+        if (lon) {
+            char date[20];
+            formatDate(date, sizeof(date), fileStat.st_mtime);
+            struct passwd *pw = getpwuid(fileStat.st_uid);
+            struct group *gr = getgrgid(fileStat.st_gid);
+            printf("%s   %ld (%ld)     %s     %s ", date, (long)fileStat.st_nlink, (long)fileStat.st_ino, pw->pw_name, gr->gr_name);
+            printPermissions(fileStat);
+            printf("     %lld %s\n", (long long)fileStat.st_size, entry->d_name);
+        } else {
+            printf("%lld %s\n", (long long)fileStat.st_size, entry->d_name);
+        }
+
+        if (acc) printf(" Último acceso: %s", ctime(&fileStat.st_atime));
+    }
     closedir(dir);
 }
+
 
 void erase(char *trozos[]){
     struct stat fileStat;
