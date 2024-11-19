@@ -8,8 +8,8 @@ void createEmptyMemList(tListM* memList) {
 
 }
 
-bool isEmptyMemList(tListM* memList) {
-  return memList->lastPos==-1;
+bool isEmptyMemList(tListM memList) {
+  return memList.lastPos==-1;
 }
 
 int nextMemListPos(int pMem, tListM memList) {
@@ -43,7 +43,7 @@ bool insertMemListPos(tListM* memList, dataMem m) {
 }
 
 
-dataMem getDataItem(tListM memList, int pMem) {
+dataMem getDataItemList(tListM memList, int pMem) {
   return memList.itemM[pMem];
 
 }
@@ -54,7 +54,7 @@ void freeMemList(tListM *memList) {
   dataMem item;
 
   for(pos=firstMemListPos(*memList);pos<=lastMemListPos(*memList);pos++){
-    item=getDataItem(*memList,pos);
+    item=getDataItemList(*memList,pos);
 
     if(item.cmdType==MALLOC)
       free(item.dir);
@@ -69,7 +69,7 @@ void freeMemList(tListM *memList) {
 
 }
 
-void deleteItemMemList(tListM* memList, int pMem) {
+void deleteItemMemList( int pMem,tListM* memList) {
   int i;
   for(i=0; i<lastMemListPos(*memList);i++){
     if(i>=pMem)
@@ -81,7 +81,7 @@ void deleteItemMemList(tListM* memList, int pMem) {
 void deleteMemList(tListM* memList, int pMem) {
   int i;
   for(i=0;i<=memList->lastPos;i--){
-    deleteItemMemList(memList,i);
+    deleteItemMemList(i,memList);
     memList->lastPos--;
   }
 }
