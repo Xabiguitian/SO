@@ -16,6 +16,7 @@
 #include <errno.h>
 #include <time.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
 
 //CONSTANTES DEFINIDAS
 
