@@ -32,7 +32,7 @@ void do_AllocateCreateshared (char *tr[]);
 void * ObtenerMemoriaShmget (key_t clave, size_t tam);
 void LlenarMemoria (void *p, size_t cont, unsigned char byte);
 void Recursiva (int n);
-void ImprimirListaShared();
-void ImprimirListaMmap();
+void ImprimirListaShared(tListM  * memList);
+void ImprimirListaMmap(tListM *memList);
 
 #endif //P2_H

@@ -11,48 +11,49 @@
 #include "memlist.h"
 #define TAMANO 2048
 
-void Recursiva (int n)
-{
+tListM L;
+
+void Recursiva(int n) {
    char automatico[TAMANO];
    static char estatico[TAMANO];
 
-   printf ("parametro:%3d(%p) array %p, arr estatico %p\n",n,&n,automatico, estatico);
+   printf("parametro:%3d(%p) array %p, arr estatico %p\n", n, &n, automatico, estatico);
 
-   if (n>0)
-      Recursiva(n-1);
+   if (n > 0)
+      Recursiva(n - 1);
 }
 
-void LlenarMemoria (void *p, size_t cont, unsigned char byte)
-{
-   unsigned char *arr=(unsigned char *) p;
+void LlenarMemoria(void *p, size_t cont, unsigned char byte) {
+   unsigned char *arr = (unsigned char *)p;
    size_t i;
 
-   for (i=0; i<cont;i++)
-		arr[i]=byte;
+   for (i = 0; i < cont; i++)
+      arr[i] = byte;
 }
 
-void * ObtenerMemoriaShmget (key_t clave, size_t tam)
-{
-   void * p;
-   int aux,id,flags=0777;
+void *ObtenerMemoriaShmget(key_t clave, size_t tam) {
+   void *p;
+   int aux, id, flags = 0777;
    struct shmid_ds s;
 
-   if (tam)     /*tam distito de 0 indica crear */
-      flags=flags | IPC_CREAT | IPC_EXCL; /*cuando no es crear pasamos de tamano 0*/
-   if (clave==IPC_PRIVATE)  /*no nos vale*/
-      {errno=EINVAL; return NULL;}
-   if ((id=shmget(clave, tam, flags))==-1)
-      return (NULL);
-   if ((p=shmat(id,NULL,0))==(void*) -1){
-      aux=errno;
-      if (tam)
-         shmctl(id,IPC_RMID,NULL);
-      errno=aux;
-      return (NULL);
+   if (tam)
+      flags = flags | IPC_CREAT | IPC_EXCL;
+   if (clave == IPC_PRIVATE) {
+      errno = EINVAL;
+      return NULL;
    }
-   shmctl (id,IPC_STAT,&s); /* si no es crear, necesitamos el tamano, que es s.shm_segsz*/
-/* Guardar en la lista   InsertarNodoShared (&L, p, s.shm_segsz, clave); */
-   return (p);
+   if ((id = shmget(clave, tam, flags)) == -1)
+      return NULL;
+   if ((p = shmat(id, NULL, 0)) == (void *)-1) {
+      aux = errno;
+      if (tam)
+         shmctl(id, IPC_RMID, NULL);
+      errno = aux;
+      return NULL;
+   }
+   shmctl(id, IPC_STAT, &s);
+   InsertarNodoShared(&L, p, s.shm_segsz, clave);
+   return p;
 }
 
 void do_AllocateCreateshared (char *tr[]) { //Crea un bloque de memoria compartida
@@ -77,20 +78,20 @@ void do_AllocateCreateshared (char *tr[]) { //Crea un bloque de memoria comparti
 		printf ("Imposible asignar memoria compartida clave %lu:%s\n",(unsigned long) cl,strerror(errno));
 }
 
-void ImprimirListaShared(tListM memList){
+void ImprimirListaShared(tListM  * memList) {
    int aux;
    dataMem itm;
-   struct  nodoShared *p=L.shared;
+
    printf("LISTA DE BLOQUES DE MEMORIA COMPARTIDA:\n");
-	if(isEmptyMemList(memList))
+   if (isEmptyMemList(*memList)) {
       printf("\b");
-   else{
-      for(aux= firstMem(memList);aux<=lastMem(memList);aux++){
-         itm=getDataMemList(aux,memList);
-         if(itm.cmdType==SHARED)
+   } else {
+      for (aux = firstMem(*memList); aux <= lastMem(*memList); aux++) {
+         itm = getDataMemList(aux, *memList);
+         if (itm.cmdType == SHARED)
             printf("\t%p\t\t%zu %s shared (key: %d)\n", itm.dir, itm.size, itm.date, itm.Union.key);
-         }
-	}
+      }
+   }
 }
 
 void do_AllocateShared (char *tr[])
@@ -128,17 +129,17 @@ void * MapearFichero (char * fichero, int protection){ //mapea un fichero
    return p;
 }
 
-void ImprimirListaMmap(tListM memList){
+void ImprimirListaMmap(tListM *memList){
    int pos;
    dataMem itm;
    printf("LISTA DE BLOQUES ASIGNADOS PARA EL PROCESO: ½d \n",getpid());
-   if(isEmptyMemList(memList))
+   if(isEmptyMemList(*memList))
       printf("\b");
    else{
-      for(pos= firstMem(memList);pos<=lastMem(memList);pos++){
-         itm=getDataMemList(pos,memList);
+      for(pos= firstMem(*memList);pos<=lastMem(*memList);pos++){
+         itm=getDataMemList(pos, *memList);
          if(itm.cmdType==MMAP)
-        	   printf("\t%p\t\t%zu %s %s (descriptor %d)\n", itm.dir, itm.size, itm.date, itm.Union.fichero.name, itm.Union.fichero.id);
+            printf("\t%p\t\t%zu %s %s (descriptor %d)\n", itm.dir, itm.size, itm.date, itm.Union.fichero.name, itm.Union.fichero.id);
       }
    }
 }
@@ -254,21 +255,29 @@ void Do_pmap (void) /*sin argumentos*/
    waitpid (pid,NULL,0);
 }
 
-void do_DeallocateMalloc(size_t size){
+void do_DeallocateMalloc(size_t size) {
    int aux;
-
-   for(aux=0;aux<=L.lastPos; aux++){
-      if(L.itemMem[aux].cmdType==MALLOC && L.itemMem[aux].size==size){
-         free(L.itemMem[aux].dir);
+   for (aux = 0; aux <= L.lastPos; aux++) {
+      if (L.itemM[aux].cmdType == MALLOC && L.itemM[aux].size == size) {
+         free(L.itemM[aux].dir);
          deleteItemMemList(aux, &L);
+         printf("Memoria malloc de tamaño %zu liberada.\n", size);
          return;
       }
    }
+   printf("No se encontró memoria malloc de tamaño %zu.\n", size);
 }
 
-void do_DeallocateMmap (char * file){
+void do_DeallocateMmap(char *file) {
    int aux;
-   for(aux=0;aux<=L.lastPos; aux++){
-      if(L.itemM[aux].cmdType==MMAP&&strcmp(L
+   for (aux = 0; aux <= L.lastPos; aux++) {
+      if (L.itemM[aux].cmdType == MMAP && strcmp(L.itemM[aux].Union.fichero.name, file) == 0) {
+         munmap(L.itemM[aux].dir, L.itemM[aux].size);
+         close(L.itemM[aux].Union.fichero.id);  // Cierra el descriptor del archivo
+         deleteItemMemList(aux, &L);             // Elimina el nodo de la lista
+         printf("Memoria mapeada para el archivo %s liberada.\n", file);
+         return;
+      }
    }
+   printf("No se encontró mapeo para el archivo %s.\n", file);
 }
