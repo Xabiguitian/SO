@@ -281,3 +281,24 @@ void do_DeallocateMmap(char *file) {
    }
    printf("No se encontró mapeo para el archivo %s.\n", file);
 }
+
+void do_Deallocate(char *trozos[]){
+   DIR *dir;
+   struct dirent *entry;
+   struct stat fileStat;
+   char *direccion = ".";
+
+   if (trozos[1] == NULL) {
+      cwd();
+      return;
+   } else {
+      direccion = trozos[1];
+      for (int i = 1; trozos[i] != NULL; i++) {
+         if (strcmp(trozos[i], "-malloc") == 0) do_DeallocateMalloc();
+         else if (strcmp(trozos[i], "-mmap") == 0) do_DeallocateMmap();
+         else if (strcmp(trozos[i], "-shared") == 0) ;
+         else if (strcmp(trozos[i], "-delkey") == 0) do_DeallocateDelkey();
+         else ;
+      }
+   }
+}

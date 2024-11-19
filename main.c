@@ -80,6 +80,8 @@ void processCommand(char *command, tList *historial, char * trozos[],int *fin,fi
             }else{
                 printf("Error: Se debe especificar un archivo o directorio para eliminar recursivamente\n");
             }
+        }else if(strcmp(trozos[0],"erase")==0) {
+            erase(trozos);
         }else{
             printf("No se reconoce el comando.\n");
         }
