@@ -25,7 +25,7 @@ char * getItemF(int i, filelist F){
     if(i>=0&&i<=F.lastPos){
         return F.files[i].name;
     }else{
-      return NULL;
+        return NULL;
 	}
 }
 
@@ -48,21 +48,21 @@ bool insertItemF(char commd[] , filelist *F){
     }else{
 
         F->lastPos++;
-         F->files[F->lastPos].id=F->lastPos;
+        F->files[F->lastPos].id=F->lastPos;
 
         F->files[F->lastPos].name = malloc((strlen(commd)+1)*sizeof(char));
         if(F->files[F->lastPos].name==NULL){
-          return false;
+            return false;
         }
         strcpy(F->files[F->lastPos].name,commd);
 
-          F->files[F->lastPos].mode=0;
+        F->files[F->lastPos].mode=0;
 
         return true;
         free( F->files[F->lastPos].name);
     }
-
 }
+
 int nextF(int pFile, filelist F){
     if(pFile==F.lastPos){
         return -1;
@@ -70,6 +70,7 @@ int nextF(int pFile, filelist F){
         return ++pFile;
     }
 }
+
 //FUNCIONES AUXILIARES PARA LOS FICHEROS
 
 void listarFicheros(filelist * F){
@@ -108,13 +109,13 @@ void listarFicheros(filelist * F){
 bool añadirFicheros(int id, char *name, int mode, filelist * F){
   //int atributos=fcntl(id, F_GETFL);
     if(F->lastPos>=MAXF-1){
-      perror("No hay espacio para añadir el fichero\n");
-      return false;
+        perror("No hay espacio para añadir el fichero\n");
+        return false;
     }else{
-      F->lastPos++;
-      F->files[F->lastPos].id=id;
+        F->lastPos++;
+        F->files[F->lastPos].id=id;
 
-      if(mode == O_CREAT)
+        if(mode == O_CREAT)
             F->files[F->lastPos].mode = O_CREAT;
         else if(mode == O_EXCL)
             F->files[F->lastPos].mode = O_EXCL;
@@ -123,9 +124,9 @@ bool añadirFicheros(int id, char *name, int mode, filelist * F){
         else
             F->files[F->lastPos].mode = fcntl(F->files[F->lastPos].id, F_SETFL, mode);
 
-      F->files[F->lastPos].name = malloc(strlen(name)+1);
-      strcpy(F->files[F->lastPos].name,name);
-      return true;
+        F->files[F->lastPos].name = malloc(strlen(name)+1);
+        strcpy(F->files[F->lastPos].name,name);
+        return true;
     }
 }
 

@@ -61,9 +61,9 @@ bool insertItemH(char commd[] , tList *historial){
 
 }
 int nextH(int pHist, tList historial){
-  if(pHist==historial.lastPos){
+    if(pHist==historial.lastPos){
     return -1;
     }else{
-      return ++pHist;
+        return ++pHist;
 	}
 }

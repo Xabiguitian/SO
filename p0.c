@@ -124,7 +124,7 @@ void help(tList *historial, char * trozos[]){
     printf("Comandos disponibles: authors\npid\nppid\ncd\ndate\nopen\ndup\nclose\ninfosys\nquit\nhistoric\nmakefile\nmakedir\ncwd\nlistfile\nlistdir\nreclist\nrevlist\nerase\ndelrec\nquit\nexit\nbye\n");
   }
   else if(strcmp(trozos[1], "authors")==0) {
-  	printf("Enseña el nombre, apellidos y de los logins de los autores.\n");
+    printf("Enseña el nombre, apellidos y de los logins de los autores.\n");
   }else if(strcmp(trozos[1],"pid")==0) {
     printf("Enseña el pid del proceso que se está ejecutando en el shell.\n");
   }else if(strcmp(trozos[1],"ppid")==0) {
@@ -209,25 +209,22 @@ void cmdhistoric(char *trozos[],tList * historial){
       perror("No hay comando número 0 en el histórico.\n");
 
     }else if(atoi(trozos[1])>0){
-             if(atoi(trozos[1])>last(*historial)){
-               perror("No se han introducido tantos comandos en el sistema.\n");
-             }else{
+      if(atoi(trozos[1])>last(*historial)){
+        perror("No se han introducido tantos comandos en el sistema.\n");
+      }else{
 
-                 printf("%s\n",  getItemH(atoi(trozos[1])-1,*historial));
-
-
-             }
+        printf("%s\n",  getItemH(atoi(trozos[1])-1,*historial));
+      }
 
     }else if((atoi(trozos[1])<0)){
-              if(abs(atoi(trozos[1]))>last(*historial)+1){
-                perror("No se han introducido tantos comandos en el sistema.\n");
-              }else{
-                 j=abs(atoi(trozos[1]));
-                 for(i=last(*historial)-j+1;i<=last(*historial);i++){
-                   printf("%s\n",  getItemH(i,*historial));
-              	  }
-              }
-
+      if(abs(atoi(trozos[1]))>last(*historial)+1){
+        perror("No se han introducido tantos comandos en el sistema.\n");
+      }else{
+        j=abs(atoi(trozos[1]));
+        for(i=last(*historial)-j+1;i<=last(*historial);i++){
+          printf("%s\n",  getItemH(i,*historial));
+        }
+      }
     }
 }
 
@@ -240,28 +237,28 @@ void cmdhistoric(char *trozos[],tList * historial){
 
 
 void Cmd_open(char * tr[], filelist * F){
-    int i,df, mode=0;
+  int i,df, mode=0;
 
-    if (tr[1]==NULL) {
-       listarFicheros(F);
-       return;
-    }
-    for (i=2; tr[i]!=NULL; i++)
-      if (!strcmp(tr[i],"cr")) mode|=O_CREAT;
-      else if (!strcmp(tr[i],"ex")) mode|=O_EXCL;
-      else if (!strcmp(tr[i],"ro")) mode|=O_RDONLY;
-      else if (!strcmp(tr[i],"wo")) mode|=O_WRONLY;
-      else if (!strcmp(tr[i],"rw")) mode|=O_RDWR;
-      else if (!strcmp(tr[i],"ap")) mode|=O_APPEND;
-      else if (!strcmp(tr[i],"tr")) mode|=O_TRUNC;
-      else break;
+  if (tr[1]==NULL) {
+    listarFicheros(F);
+    return;
+  }
+  for (i=2; tr[i]!=NULL; i++)
+    if (!strcmp(tr[i],"cr")) mode|=O_CREAT;
+    else if (!strcmp(tr[i],"ex")) mode|=O_EXCL;
+    else if (!strcmp(tr[i],"ro")) mode|=O_RDONLY;
+    else if (!strcmp(tr[i],"wo")) mode|=O_WRONLY;
+    else if (!strcmp(tr[i],"rw")) mode|=O_RDWR;
+    else if (!strcmp(tr[i],"ap")) mode|=O_APPEND;
+    else if (!strcmp(tr[i],"tr")) mode|=O_TRUNC;
+    else break;
 
-    if ((df=open(tr[1],mode,0777))==-1)
-        perror ("Imposible abrir fichero");
-    else{
-       printf ("Anadida entrada a la tabla ficheros abiertos..................\n");
-       añadirFicheros(df, tr[1], mode, F);
-	}
+  if ((df=open(tr[1],mode,0777))==-1)
+    perror ("Imposible abrir fichero");
+  else{
+    printf ("Anadida entrada a la tabla ficheros abiertos..................\n");
+    añadirFicheros(df, tr[1], mode, F);
+}
 }
 
 
@@ -270,15 +267,15 @@ void Cmd_close(char *tr[],filelist *F){
     int df;
 
     if (tr[1]==NULL || (df=atoi(tr[1]))<0) {
-       listarFicheros(F);
+      listarFicheros(F);
 
     } else {
-      	df=atoi(tr[1]);
-    	if (close(df)==-1)
-    		perror("Imposible cerrar descriptor");
-    	else{
-			EliminarFichero(F, df);
-    	}
+      df=atoi(tr[1]);
+      if (close(df)==-1)
+        perror("Imposible cerrar descriptor");
+      else{
+	      EliminarFichero(F, df);
+      }
     }
 }
 
@@ -308,12 +305,9 @@ void Cmd_dup (char * tr[],filelist *F){
     newFile.mode=fcntl(duplicado,F_GETFL);
 
     if(p ==NULL || duplicado == -1){
-    	perror("Error al añadir el archivo duplicado a la lista de archivos abiertos.\n");
+      perror("Error al añadir el archivo duplicado a la lista de archivos abiertos.\n");
     } else {
-    	sprintf(aux, "dup %d (%s)", df, p);
-    	añadirFicheros(duplicado, aux, newFile.mode, F);
+      sprintf(aux, "dup %d (%s)", df, p);
+      añadirFicheros(duplicado, aux, newFile.mode, F);
     }
 }
-
-
-
