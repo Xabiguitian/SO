@@ -41,15 +41,15 @@ typedef struct  {
 } tListM;
 
 void createEmptyMem(tListM *memList);
-bool isEmptyMem(tListM memList);
+bool isEmptyMemList(tListM memList);
 int nextMem(int p, tListM memList);
 int previousMem(int p, tListM memList);
 int firstMem(tListM memList);
 int lastMem(tListM memList);
 bool insertMem(dataMem m, tListM *memList);
-dataMem getDataMem(int pMem, tListM memList);
+dataMem getDataMemList(int pMem, tListM memList);
 void freeList(tListM *memList);
-void deleteItemM(int pMem, tListM *M);
+void deleteItemMemList(int pMem, tListM *M);
 void deleteMem(tListM *memList);
 
 
