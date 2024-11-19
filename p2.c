@@ -55,8 +55,7 @@ void * ObtenerMemoriaShmget (key_t clave, size_t tam)
  /* Guardar en la lista   InsertarNodoShared (&L, p, s.shm_segsz, clave); */
     return (p);
 }
-void do_AllocateCreateshared (char *tr[])
-{
+void do_AllocateCreateshared (char *tr[]) { //Crea un bloque de memoria compartida
    key_t cl;
    size_t tam;
    void *p;
@@ -77,9 +76,20 @@ void do_AllocateCreateshared (char *tr[])
    else
 		printf ("Imposible asignar memoria compartida clave %lu:%s\n",(unsigned long) cl,strerror(errno));
 }
-void ImprimirListaShared(){
-
-
+void ImprimirListaShared(tListM memList){
+  int aux;
+  dataMem itm;
+  struct  nodoShared *p=L.shared;
+  printf("LISTA DE BLOQUES DE MEMORIA COMPARTIDA:\n");
+	if(isEmptyMemList(memList))
+          printf("\b");
+    else{
+      for(aux= firstMem(memList);aux<=lastMem(memList);aux++){
+        itm=getDataMemList(aux,memList);
+        if(itm.cmdType==SHARED)
+          printf("\t%p\t\t%zu %s shared (key: %d)\n", itm.dir, itm.size, itm.date, itm.Union.key);
+        }
+	}
 }
 void do_AllocateShared (char *tr[])
 {
@@ -100,8 +110,7 @@ void do_AllocateShared (char *tr[])
 		printf ("Imposible asignar memoria compartida clave %lu:%s\n",(unsigned long) cl,strerror(errno));
 }
 
-void * MapearFichero (char * fichero, int protection)
-{
+void * MapearFichero (char * fichero, int protection){ //mapea un fichero
     int df, map=MAP_PRIVATE,modo=O_RDONLY;
     struct stat s;
     void *p;
@@ -116,11 +125,21 @@ void * MapearFichero (char * fichero, int protection)
 /* Gurdas en la lista de descriptores usados df, fichero*/
     return p;
 }
-void ImprimirListaMmap(){
-
+void ImprimirListaMmap(tListM memList){
+  int pos;
+  dataMem itm;
+  printf("LISTA DE BLOQUES ASIGNADOS PARA EL PROCESO: ½d \n",getpid());
+  if(isEmptyMemList(memList))
+    printf("\b");
+  else{
+    for(pos= firstMem(memList);pos<=lastMem(memList);pos++){
+      itm=getDataMemList(pos,memList);
+      if(itm.cmdType==MMAP)
+        	printf("\t%p\t\t%zu %s %s (descriptor %d)\n", itm.dir, itm.size, itm.date, itm.Union.fichero.name, itm.Union.fichero.id);
+      }
 }
-void do_AllocateMmap(char *arg[])
-{
+}
+void do_AllocateMmap(char *arg[]){//funcion para hacer un mapeado de un fichero
      char *perm;
      void *p;
      int protection=0;
@@ -138,8 +157,7 @@ void do_AllocateMmap(char *arg[])
              printf ("fichero %s mapeado en %p\n", arg[0], p);
 }
 
-void do_DeallocateDelkey (char *args[])
-{
+void do_DeallocateDelkey (char *args[]){ //función para borrar una clave de un bloque de memoria compartida
    key_t clave;
    int id;
    char *key=args[0];
@@ -158,8 +176,7 @@ void do_DeallocateDelkey (char *args[])
 
 
 
-ssize_t LeerFichero (char *f, void *p, size_t cont)
-{
+ssize_t LeerFichero (char *f, void *p, size_t cont) { //funcion para leer un fichero
    struct stat s;
    ssize_t  n;
    int df,aux;
@@ -176,6 +193,13 @@ ssize_t LeerFichero (char *f, void *p, size_t cont)
    }
    close (df);
    return n;
+}
+
+void * cadtop(char *s){
+  void *p;
+  sscanf(s, "%p", &p);
+  return p;
+
 }
 
 void Cmd_ReadFile (char *ar[])
@@ -226,4 +250,22 @@ void Do_pmap (void) /*sin argumentos*/
       exit(1);
   }
   waitpid (pid,NULL,0);
+}
+
+
+void do_DeallocateMalloc(size_t size){
+  int aux;
+
+  for(aux=0;aux<=L.lastPos; aux++){
+    if(L.itemMem[aux].cmdType==MALLOC && L.itemMem[aux].size==size){
+      free(L.itemMem[aux].dir);
+      deleteItemMemList(aux, &L);
+      return;
+      }
+      }
+  }
+void do_DeallocateMmap (char * file){
+  int aux;
+  for(aux=0;aux<=L.lastPos; aux++){
+    if(L.itemM[aux].cmdType==MMAP&&strcmp(L
 }
