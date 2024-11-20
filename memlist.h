@@ -17,6 +17,11 @@
 #define MAX_LISTMEM 2048
 
 
+typedef struct fich {
+    int df;
+    char filename[MAX_FILENAME];
+} fich;
+
 
 typedef enum cmd {
     MALLOC, MMAP, SHARED
@@ -51,6 +56,7 @@ dataMem getDataMemList(int pMem, tListM memList);
 void freeList(tListM *memList);
 void deleteItemMemList(int pMem, tListM *M);
 void deleteMem(tListM *memList);
+
 
 
 #endif //MEMLIST_H

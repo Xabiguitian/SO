@@ -163,6 +163,8 @@ void help(tList *historial, char * trozos[]){
     printf("Elimina archivos y directorios vacíos\n");
   }else if(strcmp(trozos[1],"delrec")==0) {
     printf("Elimina archivos y directorios tanto que estén vacíos como no (eliminando los respectivos subdirectorios)\n");
+  }else if(strcmp(trozos[1],"recurse")==0){
+    printf("ejecuta la función recursiva n veces.\n");
   }else
     printf("No se reconoce el comando.\n");
 }

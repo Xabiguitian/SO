@@ -11,19 +11,76 @@
 #include "memlist.h"
 #define TAMANO 2048
 
-tListM L;
+/*void deallocateGen();
+void allocateGen();
+void memfill();
+void memdump();
+void memoryGen();
+void readfile();
+void writefile();
+void writeC();
+void readC();
+ */
 
-void Recursiva(int n) {
+void recurse(int n) {
    char automatico[TAMANO];
    static char estatico[TAMANO];
 
    printf("parametro:%3d(%p) array %p, arr estatico %p\n", n, &n, automatico, estatico);
 
    if (n > 0)
-      Recursiva(n - 1);
+      recurse(n - 1);
 }
 
-void LlenarMemoria(void *p, size_t cont, unsigned char byte) {
+/*void allocateGen(char *trozos[]){
+   if(trozos[1]==NULL){
+     printf("******Lista de bloques asignados para el proceso %d\n", getpid());
+   }else if(strcmp(trozos[1],"-malloc")==0){
+   }else if(strcmp(trozos[1],"-mmap")==0){
+   }else if(strcmp(trozos[1],"-createshared")==0){
+   }else if(strcmp(trozos[1],"-shared")==0){
+   }
+}*/
+
+
+/*void deallocateGen(char *trozos[]){
+   if(trozos[1]==NULL){
+      printf("******Lista de bloques asignados para el proceso %d\n", getpid());
+   }else if(strcmp(trozos[1],"-malloc")==0){
+   }else if(strcmp(trozos[1],"-mmap")==0){
+   }else if(strcmp(trozos[1],"-shared")==0){
+   }else if(strcmp(trozos[1],"-delkey")==0){
+   }else if(strcmp(trozos[1],"addr")==0){
+   }
+
+}*/
+
+void memoryGen(char *trozos[]){
+
+if(trozos[1]==NULL){
+
+  printf("Variables locales\t\t");
+  printf("Variables globales\t\t");
+  printf("Variables (N.I)globales\t\t");
+  printf("Variables estáticas\t\t");
+  printf("Variables (N.I)estáticas\t\t");
+  printf("Funciones programa\t\t");
+  printf("Funciones libreria\t\t");
+  printf("******Lista de bloques asignados para el proceso %d\n", getpid());
+}else if(strcmp(trozos[1],"-funcs")==0){
+   printf("Funciones programa:\t\t %p \n%p \n %p\n", &pid,&cmdate,&authors);
+   printf("Funciones libreria:\t\t %p\n %p \n %p\n", &malloc, &printf,&scanf);
+}else if(strcmp(trozos[1],"-vars")==0){
+
+}else if(strcmp(trozos[1],"-blocks")==0){
+
+}else if(strcmp(trozos[1],"-all")==0){
+
+}else if(strcmp(trozos[1],"-pmap")==0){
+ }
+}
+
+/*void LlenarMemoria(void *p, size_t cont, unsigned char byte) {
    unsigned char *arr = (unsigned char *)p;
    size_t i;
 
@@ -124,8 +181,8 @@ void * MapearFichero (char * fichero, int protection){ //mapea un fichero
       return NULL;
    if ((p=mmap (NULL,s.st_size, protection,map,df,0))==MAP_FAILED)
       return NULL;
-/* Guardar en la lista    InsertarNodoMmap (&L,p, s.st_size,df,fichero); */
-/* Gurdas en la lista de descriptores usados df, fichero*/
+// Guardar en la lista    InsertarNodoMmap (&L,p, s.st_size,df,fichero);
+// Gurdas en la lista de descriptores usados df, fichero
    return p;
 }
 
@@ -187,7 +244,7 @@ ssize_t LeerFichero (char *f, void *p, size_t cont) { //funcion para leer un fic
 
    if (stat (f,&s)==-1 || (df=open(f,O_RDONLY))==-1)
 	return -1;
-   if (cont==-1)   /* si pasamos -1 como bytes a leer lo leemos entero*/
+   if (cont==-1)   // si pasamos -1 como bytes a leer lo leemos entero
 	cont=s.st_size;
    if ((n=read(df,p,cont))==-1){
 	aux=errno;
@@ -209,13 +266,13 @@ void * cadtop(char *s){
 void Cmd_ReadFile (char *ar[])
 {
    void *p;
-   size_t cont=-1;  /*si no pasamos tamano se lee entero */
+   size_t cont=-1;  //si no pasamos tamano se lee entero
    ssize_t n;
    if (ar[0]==NULL || ar[1]==NULL){
 	printf ("faltan parametros\n");
 	return;
    }
-   p=cadtop(ar[1]);  /*convertimos de cadena a puntero*/
+   p=cadtop(ar[1]);  //convertimos de cadena a puntero
    if (ar[2]!=NULL)
 	cont=(size_t) atoll(ar[2]);
 
@@ -225,8 +282,8 @@ void Cmd_ReadFile (char *ar[])
 	printf ("leidos %lld bytes de %s en %p\n",(long long) n,ar[0],p);
 }
 
-void Do_pmap (void) /*sin argumentos*/
-{ pid_t pid;       /*hace el pmap (o equivalente) del proceso actual*/
+void Do_pmap (void) //sin argumentos
+{ pid_t pid;       //hace el pmap (o equivalente) del proceso actual
    char elpid[32];
    char *argv[4]={"pmap",elpid,NULL};
 
@@ -240,15 +297,15 @@ void Do_pmap (void) /*sin argumentos*/
          perror("cannot execute pmap (linux, solaris)");
 
       argv[0]="procstat"; argv[1]="vm"; argv[2]=elpid; argv[3]=NULL;
-      if (execvp(argv[0],argv)==-1)/*No hay pmap, probamos procstat FreeBSD */
+      if (execvp(argv[0],argv)==-1)//No hay pmap, probamos procstat FreeBSD
          perror("cannot execute procstat (FreeBSD)");
 
       argv[0]="procmap",argv[1]=elpid;argv[2]=NULL;
-            if (execvp(argv[0],argv)==-1)  /*probamos procmap OpenBSD*/
+            if (execvp(argv[0],argv)==-1)  //probamos procmap OpenBSD
          perror("cannot execute procmap (OpenBSD)");
 
       argv[0]="vmmap"; argv[1]="-interleave"; argv[2]=elpid;argv[3]=NULL;
-      if (execvp(argv[0],argv)==-1) /*probamos vmmap Mac-OS*/
+      if (execvp(argv[0],argv)==-1) //probamos vmmap Mac-OS
          perror("cannot execute vmmap (Mac-OS)");
       exit(1);
    }
@@ -301,4 +358,27 @@ void do_Deallocate(char *trozos[]){
          else ;
       }
    }
+}*/
+
+/*void inicializa() {}
+void inicializaM() {
+
 }
+
+void inicializaHistorial() {}
+
+void memory_funcs() {
+   printf("Función inicializa: %p\n", &inicializa);
+   printf("Funcion printf (libreria): %p\n", &printf);
+   printf("Funcion malloc (libreria): %p\n", &malloc);
+}
+
+void memory_vars() {
+     int static
+}
+
+void Cmd_memory(char *trozos[]) {
+
+
+
+}*/

@@ -3,6 +3,7 @@
 #include "p1.h"
 #include "file.h"
 #include "historial.h"
+#include "p2.h"
 
 
 void imprimirPrompt(){
@@ -82,6 +83,9 @@ void processCommand(char *command, tList *historial, char * trozos[],int *fin,fi
             }
         }else if(strcmp(trozos[0],"erase")==0) {
             erase(trozos);
+        }else if(strcmp(trozos[0], "recurse")==0){
+            if(trozos[1]!=NULL)
+              recurse(atoi(trozos[1]));
         }else{
             printf("No se reconoce el comando.\n");
         }

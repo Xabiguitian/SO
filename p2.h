@@ -20,7 +20,21 @@
 
 //CONSTANTES DEFINIDAS
 
-//FUNCIONES DEFINIDAS
+
+//FUNCIONES GENERALES P2
+void deallocateGen();
+void allocateGen();
+void memfill();
+void memdump();
+void memoryGen();
+void readfile();
+void writefile();
+void writeC();
+void readC();
+void recurse(int n);
+
+
+//FUNCIONES "AUXILIARES" P2
 void Do_pmap (void);
 void Cmd_ReadFile (char *ar[]);
 ssize_t LeerFichero (char *f, void *p, size_t cont);
@@ -31,7 +45,6 @@ void do_AllocateShared (char *tr[]);
 void do_AllocateCreateshared (char *tr[]);
 void * ObtenerMemoriaShmget (key_t clave, size_t tam);
 void LlenarMemoria (void *p, size_t cont, unsigned char byte);
-void Recursiva (int n);
 void ImprimirListaShared(tListM  * memList);
 void ImprimirListaMmap(tListM *memList);
 
