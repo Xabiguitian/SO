@@ -1,6 +1,4 @@
-//
-// Created by angela on 22/10/24.
-//
+
 
 #ifndef P0_H
 #define P0_H
