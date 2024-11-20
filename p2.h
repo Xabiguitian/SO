@@ -21,18 +21,24 @@
 
 
 //FUNCIONES GENERALES P2
-//void deallocateGen();
-//void allocateGen();
-//void memfill();
-//void memdump();
-void memoryGen();
-//void readfile(char *trozos[]);
+void Recursiva (int n);
+void recurse(char *trozos[]);
+void printMemoryList(tListM mL);
+void pMap(void);
+void memoryGen(char *trozos[], tListM mL);
 void writefile(char *trozos[]);
 void writeC(char *trozos[]);
-//void readC(char *trozos[]);
-void recurse(char *trozos[]);
+void * cadtop(char *s);
+ssize_t LeerFichero (char *f, void *p, size_t cont);
 void Cmd_ReadFile (char *trozos[]);
 void readC(char *trozos[]);
+void fillMem(void *p, size_t size, unsigned char value);
+void memfill(char *trozos[]);
+void allocate(char *trozos[]);
+void deallocate(char *tr[]);
+//void deallocateGen();
+//void allocateGen();
+//void memdump();
 
 
 #endif //P2_H

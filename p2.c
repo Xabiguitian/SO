@@ -265,65 +265,207 @@ void Cmd_ReadFile (char *trozos[])
 }
 
 void readC(char *trozos[]){
-  void *p;
-  size_t cont;
-  ssize_t n;
-  int df;
-  if (trozos[0]==NULL || trozos[1]==NULL){
-    perror("Faltan parametros\n");
-    return;
-  }
-  df=atoi(trozos[0]);
+   void *p;
+   size_t cont;
+   ssize_t n;
+   int df;
+   if (trozos[0]==NULL || trozos[1]==NULL){
+      perror("Faltan parametros\n");
+      return;
+   }
+   df=atoi(trozos[0]);
 
-  if(df<0){
-    perror("EL fichero no está abierto\n");
-    return;
-  }
-  p=cadtop(trozos[1]);
+   if(df<0){
+      perror("EL fichero no está abierto\n");
+      return;
+   }
+   p=cadtop(trozos[1]);
 
-  if (trozos[2]!=NULL)
-    cont=(size_t) atoll(trozos[2]);
-  else
-    cont=-1;
+   if (trozos[2]!=NULL)
+      cont=(size_t) atoll(trozos[2]);
+   else
+      cont=-1;
 
-  if((n=LeerFichero(df,p,cont))==-1)
-    perror("Imposible leer desde el fichero");
-  else
-     printf("Leídos %lld bytes desde el descriptor de archivo %d en %p\n", (long long) n, df, p);
+   if((n=LeerFichero(df,p,cont))==-1)
+      perror("Imposible leer desde el fichero");
+   else
+      printf("Leídos %lld bytes desde el descriptor de archivo %d en %p\n", (long long) n, df, p);
 
 }
 
 
 //función auxiliar para memfill
 void fillMem(void *p, size_t size, unsigned char value){
-  unsigned char *pt=(unsigned char *)p;
-  size_t aux;
+   unsigned char *pt=(unsigned char *)p;
+   size_t aux;
 
-  for(aux=0;aux<size;++aux){
-    *(pt+aux)=value;
+   for(aux=0;aux<size;++aux){
+      *(pt+aux)=value;
    }
 }
 
 void memfill(char *trozos[]){
-  void *p=NULL;
-  size_t nbytes=128;
-  unsigned char byte='A';
+   void *p=NULL;
+   size_t nbytes=128;
+   unsigned char byte='A';
 
-  if(trozos[1]==NULL){
-    printf("Faltan parametros\n");
-    return;
-  }else{
-    p=(void *)strtoul(trozos[1],NULL,16);
-  }
-  if(trozos[2]!=NULL){
-    nbytes=(size_t) atoi(trozos[2]);
-  }
-  if(trozos[3]!=NULL){
-    byte=(unsigned char) trozos[3][0];
-  }
-  fillMem(p,nbytes,byte);
+   if(trozos[1]==NULL){
+      printf("Faltan parametros\n");
+      return;
+   }else{
+      p=(void *)strtoul(trozos[1],NULL,16);
+   }
+   if(trozos[2]!=NULL){
+      nbytes=(size_t) atoi(trozos[2]);
+   }
+   if(trozos[3]!=NULL){
+      byte=(unsigned char) trozos[3][0];
+   }
+   fillMem(p,nbytes,byte);
 }
 
+void allocate(char *tr[]) {
+    if (tr[0] == NULL) {
+        printf("Debe proporcionar un argumento.\n");
+        return;
+    }
+
+    // Caso 1: "-malloc n" -> Asignar memoria con malloc
+    if (strcmp(tr[0], "-malloc") == 0 && tr[1] != NULL) {
+        size_t tam = (size_t)strtoul(tr[1], NULL, 10);
+        if (tam == 0) {
+            printf("No se puede asignar memoria de tamaño 0\n");
+            return;
+        }
+
+        void *ptr = AsignarMemoriaMalloc(tam);
+        if (ptr != NULL) {
+            dataMem nuevoBloque = {tam, ptr, "fecha_placeholder", .Union.fichero = -1, .cmdType = 0};
+            InsertarBloqueMemoria(nuevoBloque);
+            printf("Bloque de memoria de %lu bytes asignado con malloc en %p\n", (unsigned long)tam, ptr);
+        } else {
+            printf("Error al asignar memoria con malloc\n");
+        }
+    }
+    // Caso 2: "-mmap file perm" -> Asignar memoria mapeando un archivo
+    else if (strcmp(tr[0], "-mmap") == 0 && tr[1] != NULL && tr[2] != NULL) {
+        char *fichero = tr[1];
+        char *perm = tr[2];
+        int protection = 0;
+        
+        if (strchr(perm, 'r') != NULL) protection |= PROT_READ;
+        if (strchr(perm, 'w') != NULL) protection |= PROT_WRITE;
+        if (strchr(perm, 'x') != NULL) protection |= PROT_EXEC;
+
+        void *ptr = AsignarMemoriaMmap(fichero, protection);
+        if (ptr != NULL) {
+            dataMem nuevoBloque = {0, ptr, "fecha_placeholder", .Union.fichero = open(fichero, O_RDONLY), .cmdType = 1};
+            InsertarBloqueMemoria(nuevoBloque);
+            printf("Archivo %s mapeado a memoria en %p\n", fichero, ptr);
+        } else {
+            printf("Error al mapear el archivo %s\n", fichero);
+        }
+    }
+    // Caso 3: "-create shared cl n" -> Asignar memoria compartida
+    else if (strcmp(tr[0], "-create") == 0 && tr[1] != NULL && tr[2] != NULL) {
+        key_t cl = (key_t)strtoul(tr[1], NULL, 10);
+        size_t tam = (size_t)strtoul(tr[2], NULL, 10);
+        if (tam == 0) {
+            printf("No se pueden asignar bloques de 0 bytes\n");
+            return;
+        }
+
+        void *ptr = AsignarMemoriaShared(cl, tam);
+        if (ptr != NULL) {
+            dataMem nuevoBloque = {tam, ptr, "fecha_placeholder", .Union.key = (int)cl, .cmdType = 2};
+            InsertarBloqueMemoria(nuevoBloque);
+            printf("Memoria compartida con clave %lu asignada en %p\n", (unsigned long)cl, ptr);
+        } else {
+            printf("Error al asignar memoria compartida con clave %lu\n", (unsigned long)cl);
+        }
+    }
+    // Caso 4: "-shared cl" -> Asignar memoria compartida ya creada
+    else if (strcmp(tr[0], "-shared") == 0 && tr[1] != NULL) {
+        key_t cl = (key_t)strtoul(tr[1], NULL, 10);
+        void *ptr = AsignarMemoriaShared(cl, 0);  // Solo obtención, sin tamaño
+        if (ptr != NULL) {
+            dataMem nuevoBloque = {0, ptr, "fecha_placeholder", .Union.key = (int)cl, .cmdType = 3};
+            InsertarBloqueMemoria(nuevoBloque);
+            printf("Memoria compartida con clave %lu asignada en %p\n", (unsigned long)cl, ptr);
+        } else {
+            printf("Error al obtener memoria compartida con clave %lu\n", (unsigned long)cl);
+        }
+    }
+    // Caso por defecto si no se reconoce el comando
+    else {
+        printf("Comando no reconocido o parámetros incorrectos.\n");
+    }
+}
+
+
+void deallocate(char *tr[]) {
+    if (tr[0] == NULL) {
+        printf("Debe proporcionar un argumento.\n");
+        return;
+    }
+
+    // Caso 1: "-malloc n" -> Desasignar memoria malloc
+    if (strcmp(tr[0], "-malloc") == 0 && tr[1] != NULL) {
+        size_t size = (size_t) strtoul(tr[1], NULL, 10);
+        if (size == 0) {
+            printf("No se puede liberar memoria de tamaño 0\n");
+            return;
+        }
+        free(tr[1]);  // Liberar el bloque de memoria previamente asignado
+        printf("Memoria de %lu bytes liberada con free\n", (unsigned long) size);
+    }
+    // Caso 2: "-mmap file" -> Desmapear archivo
+    else if (strcmp(tr[0], "-mmap") == 0 && tr[1] != NULL) {
+        // Asegúrate de que el bloque haya sido mapeado previamente
+        if (munmap(tr[1], TAMANO) == -1) {  // Suponiendo que TAMANO es el tamaño de mapeo
+            perror("Error al desmapear archivo");
+            return;
+        }
+        printf("Archivo %s desmapeado\n", tr[1]);
+    }
+    // Caso 3: "-shared cl" -> Desacoplar memoria compartida
+    else if (strcmp(tr[0], "-shared") == 0 && tr[1] != NULL) {
+        key_t clave = (key_t) strtoul(tr[1], NULL, 10);
+        if (shmdt(tr[1]) == -1) {
+            perror("Error al desacoplar memoria compartida");
+            return;
+        }
+        printf("Memoria compartida con clave %lu desacoplada\n", (unsigned long) clave);
+    }
+    // Caso 4: "-delkey cl" -> Eliminar clave de memoria compartida
+    else if (strcmp(tr[0], "-delkey") == 0 && tr[1] != NULL) {
+        key_t clave = (key_t) strtoul(tr[1], NULL, 10);
+        int id;
+        if ((id = shmget(clave, 0, 0666)) == -1) {
+            perror("shmget: imposible obtener memoria compartida");
+            return;
+        }
+        if (shmctl(id, IPC_RMID, NULL) == -1) {
+            perror("shmctl: imposible eliminar memoria compartida");
+            return;
+        }
+        printf("Memoria compartida con clave %lu eliminada\n", (unsigned long) clave);
+    }
+    // Caso 5: "addr" -> Desasignar memoria según dirección
+    else {
+        void *addr = (void *) strtoul(tr[0], NULL, 10);
+        if (addr == NULL) {
+            printf("Dirección no válida\n");
+            return;
+        }
+        
+        // Verificar si la dirección es un bloque malloc, mmap o compartido (esto puede ser más complejo dependiendo de la implementación específica)
+        // Caso malloc
+        // Aquí asumimos que la dirección proporcionada es válida para liberar con free
+        free(addr);  // Liberar memoria
+        printf("Bloque de memoria en %p liberado\n", addr);
+    }
+}
 
 /*void allocateGen(char *trozos[]){
     if(trozos[1]==NULL){
@@ -638,7 +780,7 @@ void memory_funcs() {
 }
 
 void memory_vars() {
-     int static
+      int static
 }
 
 void Cmd_memory(char *trozos[]) {
