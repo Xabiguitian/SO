@@ -31,6 +31,8 @@ void writefile(char *trozos[]);
 void writeC(char *trozos[]);
 //void readC(char *trozos[]);
 void recurse(char *trozos[]);
+void Cmd_ReadFile (char *trozos[]);
+void readC(char *trozos[]);
 
 
 #endif //P2_H
