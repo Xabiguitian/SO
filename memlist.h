@@ -1,6 +1,4 @@
-//
-// Created by angela on 16/11/24.
-//
+
 
 #ifndef MEMLIST_H
 #define MEMLIST_H
@@ -15,7 +13,7 @@
 
 #define MAXDATA 4096
 #define MAX_LISTMEM 2048
-
+#define MAX_FILENAME 1024
 
 typedef struct fich {
     int df;
@@ -34,7 +32,7 @@ typedef struct dataMem {
     char date[128];
     union {
         int key;
-        tFile fichero;
+        fich fichero;
     } Union;
     cmd cmdType;
 } dataMem;
@@ -45,17 +43,17 @@ typedef struct  {
     int lastPos;
 } tListM;
 
-void createEmptyMem(tListM *memList);
+void createEmptyMemList(tListM *memList);
 bool isEmptyMemList(tListM memList);
-int nextMem(int p, tListM memList);
-int previousMem(int p, tListM memList);
-int firstMem(tListM memList);
-int lastMem(tListM memList);
-bool insertMem(dataMem m, tListM *memList);
-dataMem getDataMemList(int pMem, tListM memList);
-void freeList(tListM *memList);
-void deleteItemMemList(int pMem, tListM *M);
-void deleteMem(tListM *memList);
+int nextMemListPos(int pMem, tListM memList);
+int prevMemListPos(int pMem, tListM memList);
+int firstMemListPos( tListM memList);
+int lastMemListPos(tListM memList);
+bool insertMemListPos(tListM* memList, dataMem m);
+dataMem getDataItemList(tListM memList, int pMem) ;
+void freeMemList(tListM *memList);
+void deleteItemMemList( int pMem,tListM* memList);
+void deleteMemList(tListM* memList);
 
 
 
