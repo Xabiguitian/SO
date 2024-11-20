@@ -29,7 +29,7 @@ void leerComando(char *command,char * trozos[]) {
 
 
 //FUNCIÓNES PARA PROCESAR LOS COMANDOS
-void processCommand(char *command, tList *historial, char * trozos[],int *fin,filelist *F ) {
+void processCommand(char *command, tList *historial, char * trozos[],int *fin,filelist *F, tListM mL ) {
     if(trozos[0]!=NULL){
         insertItemH(command,historial);
         if(strcmp(trozos[0], "authors")==0) {
@@ -84,8 +84,17 @@ void processCommand(char *command, tList *historial, char * trozos[],int *fin,fi
         }else if(strcmp(trozos[0],"erase")==0) {
             erase(trozos);
         }else if(strcmp(trozos[0], "recurse")==0){
-            if(trozos[1]!=NULL)
-              recurse(atoi(trozos[1]));
+                  recurse(trozos);
+        }else if(strcmp(trozos[0],"memory")==0) {
+            memoryGen(trozos,mL);
+        }else if(strcmp(trozos[0],"writefile")==0){
+           writefile(trozos);
+        /*}else if(strcmp(trozos[0],"readfile")==0){
+          readfile(trozos);*/
+        }else if(strcmp(trozos[0],"write")==0){
+          writeC(trozos);
+        /*}else if(strcmp(trozos[0],"read")==0){
+          readC(trozos);*/
         }else{
             printf("No se reconoce el comando.\n");
         }
@@ -102,11 +111,13 @@ int main() {
     char *trozos[MAXTROZOS];
     tList historial;
     filelist F;
+    tListM mL;
     int fin=1;
 
 
     createEmptyListH(&historial);
     createEmptyListF(&F);
+    createEmptyMemList(&mL);
 
     añadirFicheros(0, "entrada estandar", O_RDWR, &F);
     añadirFicheros(1, "salida estandar", O_RDWR, &F);
@@ -115,6 +126,6 @@ int main() {
     do {
         imprimirPrompt();
         leerComando(command,trozos);
-        processCommand(command, &historial, trozos,&fin ,&F);
+        processCommand(command, &historial, trozos,&fin ,&F,mL);
     }while(fin==1);
 }
