@@ -247,43 +247,84 @@ ssize_t LeerFichero (char *f, void *p, size_t cont)
    return n;
 }
 
-void Cmd_ReadFile (char *ar[])
+void Cmd_ReadFile (char *trozos[])
 {
    void *p;
    size_t cont=-1;  /*si no pasamos tamano se lee entero */
    ssize_t n;
-   if (ar[0]==NULL || ar[1]==NULL){
+   if (trozos[0]==NULL || trozos[1]==NULL){
       printf ("faltan parametros\n");
       return;
    }
-   p=cadtop(ar[1]);  /*convertimos de cadena a puntero*/
-   if (ar[2]!=NULL)
-      cont=(size_t) atoll(ar[2]);
+   p=cadtop(trozos[1]);  /*convertimos de cadena a puntero*/
+   if (trozos[2]!=NULL)
+      cont=(size_t) atoll(trozos[2]);
 
-   if ((n=LeerFichero(ar[0],p,cont))==-1)
+   if ((n=LeerFichero(trozos[0],p,cont))==-1)
       perror ("Imposible leer fichero");
    else
-      printf ("leidos %lld bytes de %s en %p\n",(long long) n,ar[0],p);
+      printf ("leidos %lld bytes de %s en %p\n",(long long) n,trozos[0],p);
 }
 
-/*void readC(char *ar[]){
+void readC(char *trozos[]){
   void *p;
   size_t cont;
   ssize_t n;
   int df;
-  if (ar[0]==NULL || ar[1]==NULL){
+  if (trozos[0]==NULL || trozos[1]==NULL){
     perror("Faltan parametros\n");
     return;
   }
-  df=atoi(ar[0]);
-  
+  df=atoi(trozos[0]);
+
   if(df<0){
     perror("EL fichero no está abierto\n");
-  
-}*/
+    return;
+  }
+  p=cadtop(trozos[1]);
 
-//void readfile(tListM mL) {}
-//void readC(){}
+  if (trozos[2]!=NULL)
+    cont=(size_t) atoll(trozos[2]);
+  else
+    cont=-1;
+
+  if((n=LeerFichero(df,p,cont))==-1)
+    perror("Imposible leer desde el fichero");
+  else
+     printf("Leídos %lld bytes desde el descriptor de archivo %d en %p\n", (long long) n, df, p);
+
+}
+
+
+//función auxiliar para memfill
+void fillMem(void *p, size_t size, unsigned char value){
+  unsigned char *pt=(unsigned char *)p;
+  size_t aux;
+
+  for(aux=0;aux<size;++aux){
+    *(pt+aux)=value;
+   }
+}
+
+void memfill(char *trozos[]){
+  void *p=NULL;
+  size_t nbytes=128;
+  unsigned char byte='A';
+
+  if(trozos[1]==NULL){
+    printf("Faltan parametros\n");
+    return;
+  }else{
+    p=(void *)strtoul(trozos[1],NULL,16);
+  }
+  if(trozos[2]!=NULL){
+    nbytes=(size_t) atoi(trozos[2]);
+  }
+  if(trozos[3]!=NULL){
+    byte=(unsigned char) trozos[3][0];
+  }
+  fillMem(p,nbytes,byte);
+}
 
 
 /*void allocateGen(char *trozos[]){
