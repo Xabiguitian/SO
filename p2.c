@@ -36,23 +36,22 @@ void readC();
 
 //FUNCION AUXILIAR PARA RECURSE
 void Recursiva (int n){
-   char automatico[TAMANO];
-   static char estatico[TAMANO];
+    char automatico[TAMANO];
+    static char estatico[TAMANO];
 
-   printf ("parametro:%3d(%p) array %p, arr estatico %p\n",n,&n,automatico, estatico);
+    printf ("parametro:%3d(%p) array %p, arr estatico %p\n",n,&n,automatico, estatico);
 
-   if (n>0)
-      Recursiva(n-1);
+    if (n>0)
+        Recursiva(n-1);
 }
 
 //COMANDO RECURSE
 void recurse(char *trozos[]){
-   if (trozos[1]==NULL){
-      printf("recurse [n]\t Invoca a la funcion recursiva n veces\n");
-   }
-   else {
-      Recursiva(atoi(trozos[1]));
-   }
+    if (trozos[1]==NULL){
+        printf("recurse [n]\t Invoca a la funcion recursiva n veces\n");
+    }else {
+        Recursiva(atoi(trozos[1]));
+    }
 }
 //FUNCION PARA IMPRIMIR LA LISTA DE MEMORIA
 void printMemoryList(tListM mL) {
@@ -81,7 +80,7 @@ void printMemoryList(tListM mL) {
 
 //FUNCIÓN PARA MEMORY -PMAP
 void pMap(void){
-  id_t pid;
+    id_t pid;
     char tpid[32];
     char *argv[4]={"pmap",tpid,NULL};
 
@@ -112,174 +111,173 @@ void pMap(void){
 }
 
 void memoryGen(char *trozos[], tListM mL) {
-  int static a;
-  double static b;
-  char static c;
-  int static d=4;
-  double static e=2.5;
-  char static f='f';
-  int auto1;
-  double auto2;
-  char auto3;
+    int static a;
+    double static b;
+    char static c;
+    int static d=4;
+    double static e=2.5;
+    char static f='f';
+    int auto1;
+    double auto2;
+    char auto3;
 
 
-if(trozos[1]==NULL||strcmp(trozos[1], "-all")==0){
-  printf("Funciones programa:\t\t %p, \t\t%p, \t\t %p\n", &pid,&cmdate,&authors);
-  printf("Funciones libreria:\t\t %p, \t\t%p, \t\t %p\n", &malloc, &printf,&scanf);
-  printf("Variables globales:\t\t %p\n %p\n %p\n",&intGlobI,&doubleGlobI,&doubleGlobI);
-  printf("Variables (N.I.)globales:\t\t %p,\t\t%p, \t\t%p\n",&intGlobSN,&doubleGlobSN,&doubleGlobSN );
-  printf("Variables estáticas:\t\t %p\n %p\n %p\n", &d,&e,&f);
-  printf("Variables (N.I)estáticas:\t\t %p\n %p\n %p\n",&a,&b,&c);
-  printf("Variables locales:\t\t %p\n %p\n %p\n",&auto1,&auto2,&auto3);
- printMemoryList(mL);
-}else if(strcmp(trozos[1],"-funcs")==0){
-   printf("Funciones programa:\t\t %p, \t\t%p, \t\t %p\n", &pid,&cmdate,&authors);
-   printf("Funciones libreria:\t\t %p, \t\t%p, \t\t %p\n", &malloc, &printf,&scanf);
-}else if(strcmp(trozos[1],"-vars")==0){
-  printf("Variables globales:\t\t %p\n %p\n %p\n",&intGlobI,&doubleGlobI,&doubleGlobI);
-  printf("Variables (N.I.)globales:\t\t %p,\t\t%p, \t\t%p\n",&intGlobSN,&doubleGlobSN,&doubleGlobSN );
-  printf("Variables estáticas:\t\t %p\n %p\n %p\n", &d,&e,&f);
-  printf("Variables (N.I)estáticas:\t\t %p\n %p\n %p\n",&a,&b,&c);
-  printf("Variables locales:\t\t %p\n %p\n %p\n",&auto1,&auto2,&auto3);
-}else if(strcmp(trozos[1],"-blocks")==0){
-  printMemoryList(mL);
-}else if(strcmp(trozos[1],"-pmap")==0){
-  pMap();
- }
+    if(trozos[1]==NULL||strcmp(trozos[1], "-all")==0){
+        printf("Funciones programa:\t\t %p, \t\t%p, \t\t %p\n", &pid,&cmdate,&authors);
+        printf("Funciones libreria:\t\t %p, \t\t%p, \t\t %p\n", &malloc, &printf,&scanf);
+        printf("Variables globales:\t\t %p\n %p\n %p\n",&intGlobI,&doubleGlobI,&doubleGlobI);
+        printf("Variables (N.I.)globales:\t\t %p,\t\t%p, \t\t%p\n",&intGlobSN,&doubleGlobSN,&doubleGlobSN );
+        printf("Variables estáticas:\t\t %p\n %p\n %p\n", &d,&e,&f);
+        printf("Variables (N.I)estáticas:\t\t %p\n %p\n %p\n",&a,&b,&c);
+        printf("Variables locales:\t\t %p\n %p\n %p\n",&auto1,&auto2,&auto3);
+        printMemoryList(mL);
+    }else if(strcmp(trozos[1],"-funcs")==0){
+        printf("Funciones programa:\t\t %p, \t\t%p, \t\t %p\n", &pid,&cmdate,&authors);
+        printf("Funciones libreria:\t\t %p, \t\t%p, \t\t %p\n", &malloc, &printf,&scanf);
+    }else if(strcmp(trozos[1],"-vars")==0){
+        printf("Variables globales:\t\t %p\n %p\n %p\n",&intGlobI,&doubleGlobI,&doubleGlobI);
+        printf("Variables (N.I.)globales:\t\t %p,\t\t%p, \t\t%p\n",&intGlobSN,&doubleGlobSN,&doubleGlobSN );
+        printf("Variables estáticas:\t\t %p\n %p\n %p\n", &d,&e,&f);
+        printf("Variables (N.I)estáticas:\t\t %p\n %p\n %p\n",&a,&b,&c);
+        printf("Variables locales:\t\t %p\n %p\n %p\n",&auto1,&auto2,&auto3);
+    }else if(strcmp(trozos[1],"-blocks")==0){
+        printMemoryList(mL);
+    }else if(strcmp(trozos[1],"-pmap")==0){
+        pMap();
+    }
 }
 
 
 
 void writefile(char *trozos[]) {
-  void *direccion;
-  char sobrescribir=0;
-  int cantB, df;
+    void *direccion;
+    char sobrescribir=0;
+    int cantB, df;
 
-  if (trozos[1]==NULL){
-    printf("Faltan parámetros.\n");
-    return;
-  }
+    if (trozos[1]==NULL){
+        printf("Faltan parámetros.\n");
+        return;
+    }
 
-  if(strcmp("-o", trozos[1])!=0){
-    sobrescribir=1;
-   }else if(trozos[1][0]=='-'){
-     printf("Opcion no reconocida.\n");
-     return;
-   }
+    if(strcmp("-o", trozos[1])!=0){
+        sobrescribir=1;
+    }else if(trozos[1][0]=='-'){
+        printf("Opcion no reconocida.\n");
+        return;
+    }
 
-   if(trozos[1+sobrescribir]==NULL){
-     perror("Archivo no especificado");
-     return;
-   }
-   if(trozos[2+sobrescribir]==NULL){
-     perror("Dirección no especificada");
-     return;
-   }
-   if(trozos[3+sobrescribir]==NULL){
-     perror("Cantidad no especificada");
-     return;
-   }
-   direccion=(void *) strtoul(trozos[2+sobrescribir], NULL, 16);
-   cantB=atoi(trozos[3+sobrescribir]);
+    if(trozos[1+sobrescribir]==NULL){
+        perror("Archivo no especificado");
+        return;
+    }
+    if(trozos[2+sobrescribir]==NULL){
+        perror("Dirección no especificada");
+        return;
+    }
+    if(trozos[3+sobrescribir]==NULL){
+        perror("Cantidad no especificada");
+        return;
+    }
+    direccion=(void *) strtoul(trozos[2+sobrescribir], NULL, 16);
+    cantB=atoi(trozos[3+sobrescribir]);
 
-   if(sobrescribir==1){
-     df= open(trozos[1+sobrescribir], O_CREAT |O_WRONLY, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
-   }else{
-     df=open(trozos[1 + sobrescribir], O_CREAT | O_EXCL | O_WRONLY, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
-   }
+    if(sobrescribir==1){
+        df= open(trozos[1+sobrescribir], O_CREAT |O_WRONLY, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
+    }else{
+        df=open(trozos[1 + sobrescribir], O_CREAT | O_EXCL | O_WRONLY, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
+    }
 
-   if(df==-1){
-     perror("Error al abrir el archivo");
-     return;
-   }
+    if(df==-1){
+        perror("Error al abrir el archivo");
+        return;
+    }
 
-   if(write(df, direccion, cantB)==-1){
-     close(df);
-     perror("Error al escribir el archivo");
-     return;
-   }else{
-     printf("Escritos %d bytes desde %p en el archivo\n",cantB,direccion);
-     close(df);
-   }
+    if(write(df, direccion, cantB)==-1){
+        close(df);
+        perror("Error al escribir el archivo");
+        return;
+    }else{
+        printf("Escritos %d bytes desde %p en el archivo\n",cantB,direccion);
+        close(df);
+    }
 
-}
+    }
 
 
 void writeC(char *trozos[]){
-  int  df;
-  if(trozos[1]==NULL){
-    perror("Descriptor de archivo no especificado");
-  }
-  df=atoi(trozos[1]);
-  if(df<0){
-    perror("No está abierto");
-    return;
-  }
-  writefile(trozos);
+    int  df;
+    if(trozos[1]==NULL){
+        perror("Descriptor de archivo no especificado");
+    }
+    df=atoi(trozos[1]);
+    if(df<0){
+        perror("No está abierto");
+        return;
+    }
+    writefile(trozos);
 }
 
 
 
 void * cadtop(char *s){
-   void *p;
-   sscanf(s, "%p", &p);
-   return p;
-
+    void *p;
+    sscanf(s, "%p", &p);
+    return p;
 }
 
 ssize_t LeerFichero (char *f, void *p, size_t cont)
 {
-   struct stat s;
-   ssize_t  n;
-   int df,aux;
+    struct stat s;
+    ssize_t  n;
+    int df,aux;
 
-   if (stat (f,&s)==-1 || (df=open(f,O_RDONLY))==-1)
-      return -1;
-   if (cont==-1)   /* si pasamos -1 como bytes a leer lo leemos entero*/
-      cont=s.st_size;
-   if ((n=read(df,p,cont))==-1){
-      aux=errno;
-      close(df);
-      errno=aux;
-      return -1;
-   }
-   close (df);
-   return n;
+    if (stat (f,&s)==-1 || (df=open(f,O_RDONLY))==-1)
+        return -1;
+    if (cont==-1)   /* si pasamos -1 como bytes a leer lo leemos entero*/
+        cont=s.st_size;
+    if ((n=read(df,p,cont))==-1){
+        aux=errno;
+        close(df);
+        errno=aux;
+        return -1;
+    }
+    close (df);
+    return n;
 }
 
 void Cmd_ReadFile (char *ar[])
 {
-   void *p;
-   size_t cont=-1;  /*si no pasamos tamano se lee entero */
-   ssize_t n;
-   if (ar[0]==NULL || ar[1]==NULL){
-      printf ("faltan parametros\n");
-      return;
-   }
-   p=cadtop(ar[1]);  /*convertimos de cadena a puntero*/
-   if (ar[2]!=NULL)
-      cont=(size_t) atoll(ar[2]);
+    void *p;
+    size_t cont=-1;  /*si no pasamos tamano se lee entero */
+    ssize_t n;
+    if (ar[0]==NULL || ar[1]==NULL){
+        printf ("faltan parametros\n");
+        return;
+    }
+    p=cadtop(ar[1]);  /*convertimos de cadena a puntero*/
+    if (ar[2]!=NULL)
+        cont=(size_t) atoll(ar[2]);
 
-   if ((n=LeerFichero(ar[0],p,cont))==-1)
-      perror ("Imposible leer fichero");
-   else
-      printf ("leidos %lld bytes de %s en %p\n",(long long) n,ar[0],p);
+    if ((n=LeerFichero(ar[0],p,cont))==-1)
+        perror ("Imposible leer fichero");
+    else
+        printf ("leidos %lld bytes de %s en %p\n",(long long) n,ar[0],p);
 }
 
 /*void readC(char *ar[]){
-  void *p;
-  size_t cont;
-  ssize_t n;
-  int df;
-  if (ar[0]==NULL || ar[1]==NULL){
-    perror("Faltan parametros\n");
-    return;
-  }
-  df=atoi(ar[0]);
-  
-  if(df<0){
-    perror("EL fichero no está abierto\n");
-  
+    void *p;
+    size_t cont;
+    ssize_t n;
+    int df;
+    if (ar[0]==NULL || ar[1]==NULL){
+        perror("Faltan parametros\n");
+        return;
+    }
+    df=atoi(ar[0]);
+    
+    if(df<0){
+        perror("EL fichero no está abierto\n");
+    
 }*/
 
 //void readfile(tListM mL) {}
@@ -287,35 +285,35 @@ void Cmd_ReadFile (char *ar[])
 
 
 /*void allocateGen(char *trozos[]){
-   if(trozos[1]==NULL){
-     printf("******Lista de bloques asignados para el proceso %d\n", getpid());
-   }else if(strcmp(trozos[1],"-malloc")==0){
-   }else if(strcmp(trozos[1],"-mmap")==0){
-   }else if(strcmp(trozos[1],"-createshared")==0){
-   }else if(strcmp(trozos[1],"-shared")==0){
-   }
+    if(trozos[1]==NULL){
+        printf("******Lista de bloques asignados para el proceso %d\n", getpid());
+    }else if(strcmp(trozos[1],"-malloc")==0){
+    }else if(strcmp(trozos[1],"-mmap")==0){
+    }else if(strcmp(trozos[1],"-createshared")==0){
+    }else if(strcmp(trozos[1],"-shared")==0){
+    }
 }*/
 
 
 /*void deallocateGen(char *trozos[]){
-   if(trozos[1]==NULL){
-      printf("******Lista de bloques asignados para el proceso %d\n", getpid());
-   }else if(strcmp(trozos[1],"-malloc")==0){
-   }else if(strcmp(trozos[1],"-mmap")==0){
-   }else if(strcmp(trozos[1],"-shared")==0){
-   }else if(strcmp(trozos[1],"-delkey")==0){
-   }else if(strcmp(trozos[1],"addr")==0){
-   }
+    if(trozos[1]==NULL){
+        printf("******Lista de bloques asignados para el proceso %d\n", getpid());
+    }else if(strcmp(trozos[1],"-malloc")==0){
+    }else if(strcmp(trozos[1],"-mmap")==0){
+    }else if(strcmp(trozos[1],"-shared")==0){
+    }else if(strcmp(trozos[1],"-delkey")==0){
+    }else if(strcmp(trozos[1],"addr")==0){
+    }
 
 }*/
 
 
 /*void LlenarMemoria(void *p, size_t cont, unsigned char byte) {
-   unsigned char *arr = (unsigned char *)p;
-   size_t i;
+    unsigned char *arr = (unsigned char *)p;
+    size_t i;
 
-   for (i = 0; i < cont; i++)
-      arr[i] = byte;
+    for (i = 0; i < cont; i++)
+        arr[i] = byte;
 }
 
 void *ObtenerMemoriaShmget(key_t clave, size_t tam) {
