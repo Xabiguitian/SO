@@ -89,12 +89,12 @@ void processCommand(char *command, tList *historial, char * trozos[],int *fin,fi
             memoryGen(trozos,mL);
         }else if(strcmp(trozos[0],"writefile")==0){
            writefile(trozos);
-        /*}else if(strcmp(trozos[0],"readfile")==0){
-          readfile(trozos);*/
+        }else if(strcmp(trozos[0],"readfile")==0){
+          Cmd_ReadFile(trozos);
         }else if(strcmp(trozos[0],"write")==0){
           writeC(trozos);
-        /*}else if(strcmp(trozos[0],"read")==0){
-          readC(trozos);*/
+        }else if(strcmp(trozos[0],"read")==0){
+          readC(trozos);
         }else{
             printf("No se reconoce el comando.\n");
         }
