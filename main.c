@@ -132,4 +132,5 @@ int main() {
         leerComando(command,trozos);
         processCommand(command, &historial, trozos,&fin ,&F,mL);
     }while(fin==1);
+    free(&L);
 }
