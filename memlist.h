@@ -23,7 +23,7 @@ typedef struct fich {
 
 
 typedef enum cmd {
-    MALLOC,SHARED,MMAP
+    MALLOC, MMAP, SHARED
 } cmd;
 
 
@@ -31,7 +31,7 @@ typedef struct dataMem {
     size_t size;
     void * dir;
     char date[128];
-     int key;
+    int key;
     fich fichero;
     cmd cmdType;
 } dataMem;
