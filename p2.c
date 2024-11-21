@@ -21,14 +21,13 @@ double doubleGlobSN;
 char charGlobSN;
 
 //FUNCION PARA IMPRIMIR LA LISTA DE MEMORIA
-void printMemoryList(tListM *ML) {
+void printMemoryList(tListM mL) {
     int p;
     dataMem itm;
-	tListM mL = *ML;
     printf("******Lista de bloques asignados para el proceso %d\n", getpid());
 
     if(isEmptyMemList(mL)){
-        printf("\n");
+        printf("");
     } else {
         for(p = firstMemListPos(mL); p <= lastMemListPos(mL); p++) {
             itm = getDataItemList(mL, p);
@@ -51,28 +50,25 @@ void aux_malloc(char *trozos[], tListM *mL) {
     time_t tiempo = time(0);
     struct tm * tlocal = localtime(&tiempo);
 
-    if(trozos[2] == NULL || (trozos[0] != NULL && trozos[1] == NULL))
-        printMemoryList(mL);
+    tam = strtol(trozos[2], NULL, 10);
+
+    if(tam == 0)
+        printf("No se asignan bloques de 0 bytes\n");
     else {
-        tam = strtol(trozos[2], NULL, 10);
+        item.cmdType = MALLOC;
+        item.size = tam;
+        item.dir = malloc(tam);
+        strftime(item.date, 128, "%b %d %H:%M", tlocal);
 
-        if(tam == 0)
-            printf("No se asignan bloques de 0 bytes\n");
-        else {
-            item.cmdType = MALLOC;
-            item.size = tam;
-            item.dir = malloc(tam);
-            strftime(item.date, 128, "%b %d %H:%M", tlocal);
-
-            if(item.dir == NULL) {
-                perror("No se pudo conseguir la direccion.");
-                return;
-            } else {
-                if(insertMemListPos(mL, item))
-                    printf("Asignados %zu bytes en %p\n", item.size, item.dir);
-                else
-                    perror("Imposible hacer malloc.");
-            }
+        if(item.dir == NULL) {
+            perror("No se pudo conseguir la direccion.");
+            return;
+        } else {
+            if(insertMemListPos(mL, item)){
+                printf("Asignados %zu bytes en %p\n", item.size, item.dir);
+                printf("%d\n", mL->itemM[mL->lastPos].key);
+            }else
+                perror("Imposible hacer malloc.");
         }
     }
 }
@@ -81,7 +77,7 @@ void aux_malloc(char *trozos[], tListM *mL) {
 
 void allocate(char *tr[], tListM L) {
     if (tr[1] == NULL || tr[2] == NULL) {
-        aux_malloc(tr, &L);
+        printMemoryList(L);
         return;
     }
 
@@ -93,6 +89,7 @@ void allocate(char *tr[], tListM L) {
             return;
         }
         aux_malloc(tr, &L);  // Llamada a la función que maneja malloc
+    
     }
     // Caso de mmap
     else if (strcmp(tr[1], "-mmap") == 0 && tr[2] != NULL) {
@@ -232,7 +229,7 @@ void memoryGen(char *trozos[], tListM *mL) {
         printf("Variables estáticas:\t\t %p\n %p\n %p\n", &d,&e,&f);
         printf("Variables (N.I)estáticas:\t\t %p\n %p\n %p\n",&a,&b,&c);
         printf("Variables locales:\t\t %p\n %p\n %p\n",&auto1,&auto2,&auto3);
-        printMemoryList(mL);
+        printMemoryList(*mL);
     }else if(strcmp(trozos[1],"-funcs")==0){
         printf("Funciones programa:\t\t %p, \t\t%p, \t\t %p\n", &pid,&cmdate,&authors);
         printf("Funciones libreria:\t\t %p, \t\t%p, \t\t %p\n", &malloc, &printf,&scanf);
@@ -243,7 +240,7 @@ void memoryGen(char *trozos[], tListM *mL) {
         printf("Variables (N.I)estáticas:\t\t %p\n %p\n %p\n",&a,&b,&c);
         printf("Variables locales:\t\t %p\n %p\n %p\n",&auto1,&auto2,&auto3);
     }else if(strcmp(trozos[1],"-blocks")==0){
-        printMemoryList(mL);
+        printMemoryList(*mL);
     }else if(strcmp(trozos[1],"-pmap")==0){
         pMap();
     }

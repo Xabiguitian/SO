@@ -21,7 +21,7 @@
 
 
 //FUNCIONES GENERALES P2
-void printMemoryList(tListM *ML);
+void printMemoryList(tListM mL);
 void aux_malloc(char *trozos[], tListM *mL);
 void allocate(char *tr[], tListM L);
 void Recursiva(int n);
