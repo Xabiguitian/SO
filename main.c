@@ -85,21 +85,21 @@ void processCommand(char *command, tList *historial, char * trozos[],int *fin,fi
         }else if(strcmp(trozos[0],"erase")==0) {
             erase(trozos);
         }else if(strcmp(trozos[0], "recurse")==0){
-                  recurse(trozos);
+            recurse(trozos);
         }else if(strcmp(trozos[0],"memory")==0) {
             memoryGen(trozos,mL);
         }else if(strcmp(trozos[0],"writefile")==0){
-           writefile(trozos);
+            writefile(trozos);
         }else if(strcmp(trozos[0],"readfile")==0){
-          Cmd_ReadFile(trozos);
+            Cmd_ReadFile(trozos);
         }else if(strcmp(trozos[0],"write")==0){
-          writeC(trozos);
+            writeC(trozos);
         }else if(strcmp(trozos[0],"read")==0){
-          readC(trozos);
+            readC(trozos);
         }else if(strcmp(trozos[0], "memfill")==0){
-          memfill(trozos);
+            memfill(trozos);
         }else if(strcmp(trozos[0],"memdump")==0){
-          memdump(trozos);
+            memdump(trozos);
         }else if(strcmp(trozos[0],"allocate")==0){
             allocate(trozos, *mL);
         }else if(strcmp(trozos[0],"deallocate")==0){

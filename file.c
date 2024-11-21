@@ -99,7 +99,7 @@ void listarFicheros(filelist * F){
 
 
 bool añadirFicheros(int id, char *name, int mode, filelist * F){
-  //int atributos=fcntl(id, F_GETFL);
+    //int atributos=fcntl(id, F_GETFL);
     if(F->lastPos>=MAXF-1){
         perror("No hay espacio para añadir el fichero\n");
         return false;
