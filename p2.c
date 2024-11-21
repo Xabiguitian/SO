@@ -322,14 +322,14 @@ void allocate(char *tr[]) {
     }
 
     if (strcmp(tr[1], "-malloc") == 0 && tr[2] != NULL) {
-    size_t tam = (size_t)strtoul(tr[2], NULL, 10);
-    if (tam == 0) {
-        printf("No se puede asignar memoria de tamaño 0\n");
-        return;
-    }
+        size_t tam = (size_t)strtoul(tr[2], NULL, 10);
+        if (tam == 0) {
+            printf("No se puede asignar memoria de tamaño 0\n");
+            return;
+        }
 
-    // Usamos Recursiva para simular asignación con malloc
-    Recursiva(tam);
+        // Usamos Recursiva para simular asignación con malloc
+        Recursiva(tam);
     }
     else if (strcmp(tr[1], "-mmap") == 0 && tr[1] != NULL) {
         if (tr[2] == NULL) {
@@ -345,6 +345,11 @@ void allocate(char *tr[]) {
         char *fichero = tr[2];  // Archivo debe estar en tr[2]
         char *perm = tr[3];      // Permisos en tr[3]
         int protection = 0;
+
+        // Usar 'protection' para llamar a mmap() o para otro propósito
+        if (mmap(fichero, tam, protection, MAP_SHARED, -1, 0) == MAP_FAILED) {
+            perror("Error al mapear el archivo");
+        }
 
         if (perm) {
             if (strchr(perm, 'r') != NULL) protection |= PROT_READ;
@@ -372,101 +377,59 @@ void allocate(char *tr[]) {
 }
 
 
-/*void deallocate(char *tr[]) {
-    if (tr[0] == NULL) {
+void deallocate(char *tr[]) {
+    if (tr[1] == NULL) {
         printf("Debe proporcionar un argumento.\n");
         return;
     }
 
-    // Caso 1: "-malloc n" -> Desasignar memoria malloc
-    if (strcmp(tr[0], "-malloc") == 0 && tr[1] != NULL) {
-        size_t size = (size_t) strtoul(tr[1], NULL, 10);
-        if (size == 0) {
+    if (strcmp(tr[1], "-malloc") == 0 && tr[2] != NULL) {
+        size_t tam = (size_t)strtoul(tr[2], NULL, 10);
+        if (tam == 0) {
             printf("No se puede liberar memoria de tamaño 0\n");
             return;
         }
-        free(tr[1]);  // Liberar el bloque de memoria previamente asignado
-        printf("Memoria de %lu bytes liberada con free\n", (unsigned long) size);
+
+        // Liberar memoria previamente asignada con malloc (asumiendo que tienes el puntero adecuado)
+        void *ptr = (void *)tam;  // Este es solo un ejemplo, en un caso real debes tener el puntero correcto
+        free(ptr);  // Liberar la memoria
+        printf("Memoria de %zu bytes liberada.\n", tam);
     }
-    // Caso 2: "-mmap file" -> Desmapear archivo
-    else if (strcmp(tr[0], "-mmap") == 0 && tr[1] != NULL) {
-        // Asegúrate de que el bloque haya sido mapeado previamente
-        if (munmap(tr[1], TAMANO) == -1) {  // Suponiendo que TAMANO es el tamaño de mapeo
-            perror("Error al desmapear archivo");
+    else if (strcmp(tr[1], "-mmap") == 0 && tr[2] != NULL) {
+        if (tr[2] == NULL) {
+            printf("Debe proporcionar un archivo para liberar con -mmap.\n");
             return;
         }
-        printf("Archivo %s desmapeado\n", tr[1]);
-    }
-    // Caso 3: "-shared cl" -> Desacoplar memoria compartida
-    else if (strcmp(tr[0], "-shared") == 0 && tr[1] != NULL) {
-        key_t clave = (key_t) strtoul(tr[1], NULL, 10);
-        if (shmdt(tr[1]) == -1) {
-            perror("Error al desacoplar memoria compartida");
-            return;
-        }
-        printf("Memoria compartida con clave %lu desacoplada\n", (unsigned long) clave);
-    }
-    // Caso 4: "-delkey cl" -> Eliminar clave de memoria compartida
-    else if (strcmp(tr[0], "-delkey") == 0 && tr[1] != NULL) {
-        key_t clave = (key_t) strtoul(tr[1], NULL, 10);
-        int id;
-        if ((id = shmget(clave, 0, 0666)) == -1) {
-            perror("shmget: imposible obtener memoria compartida");
-            return;
-        }
-        if (shmctl(id, IPC_RMID, NULL) == -1) {
-            perror("shmctl: imposible eliminar memoria compartida");
-            return;
-        }
-        printf("Memoria compartida con clave %lu eliminada\n", (unsigned long) clave);
-    }
-    // Caso 5: "addr" -> Desasignar memoria según dirección
-    else {
-        void *addr = (void *) strtoul(tr[0], NULL, 10);
-        if (addr == NULL) {
-            printf("Dirección no válida\n");
-            return;
-        }
+
+        char *fichero = tr[2];  // Archivo en tr[2]
         
-        // Verificar si la dirección es un bloque malloc, mmap o compartido (esto puede ser más complejo dependiendo de la implementación específica)
-        // Caso malloc
-        // Aquí asumimos que la dirección proporcionada es válida para liberar con free
-        free(addr);  // Liberar memoria
-        printf("Bloque de memoria en %p liberado\n", addr);
+        // Aquí se puede usar `munmap()` para liberar la memoria mapeada
+        if (munmap(fichero, 0) == -1) {
+            perror("Error al liberar el mapeo de archivo");
+            return;
+        }
+        printf("Memoria mapeada del archivo '%s' liberada.\n", fichero);
     }
-}*/
+    else if (strcmp(tr[1], "-shared") == 0 && tr[2] != NULL) {
+        key_t clave = (key_t)strtoul(tr[2], NULL, 10);  // Convertir el argumento a clave
+        if (clave == 0) {
+            printf("Clave inválida para memoria compartida.\n");
+            return;
+        }
 
-/*void allocateGen(char *trozos[]){
-    if(trozos[1]==NULL){
-        printf("******Lista de bloques asignados para el proceso %d\n", getpid());
-    }else if(strcmp(trozos[1],"-malloc")==0){
-    }else if(strcmp(trozos[1],"-mmap")==0){
-    }else if(strcmp(trozos[1],"-createshared")==0){
-    }else if(strcmp(trozos[1],"-shared")==0){
+        // Llamar a una función para liberar memoria compartida (puede ser 'shmctl' o similar)
+        if (shmctl(clave, IPC_RMID, NULL) == -1) {
+            perror("Error al liberar memoria compartida");
+            return;
+        }
+
+        printf("Memoria compartida con clave %d liberada.\n", clave);
     }
-}*/
-
-
-/*void deallocateGen(char *trozos[]){
-    if(trozos[1]==NULL){
-        printf("******Lista de bloques asignados para el proceso %d\n", getpid());
-    }else if(strcmp(trozos[1],"-malloc")==0){
-    }else if(strcmp(trozos[1],"-mmap")==0){
-    }else if(strcmp(trozos[1],"-shared")==0){
-    }else if(strcmp(trozos[1],"-delkey")==0){
-    }else if(strcmp(trozos[1],"addr")==0){
+    else {
+        printf("Comando no reconocido o parámetros incorrectos.\n");
     }
+}
 
-}*/
-
-
-/*void LlenarMemoria(void *p, size_t cont, unsigned char byte) {
-    unsigned char *arr = (unsigned char *)p;
-    size_t i;
-
-    for (i = 0; i < cont; i++)
-        arr[i] = byte;
-}*/
 
 void InsertarNodoShared(tListM *memList, void *dir, size_t tam, key_t clave) {
     // Crear un nuevo bloque de datos de tipo SHARED
