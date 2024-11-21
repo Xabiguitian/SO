@@ -338,7 +338,7 @@ void allocate(char *tr[]) {
             return;
         }
 
-        // Asignar memoria automática o estática según sea necesario
+        // Usamos Recursiva para simular asignación con malloc
         Recursiva(tam);
     }
     // Caso 2: "-mmap file perm" -> Asignar memoria mapeando un archivo
@@ -363,13 +363,15 @@ void allocate(char *tr[]) {
     else if (strcmp(tr[0], "-shared") == 0 && tr[1] != NULL) {
         do_AllocateShared(tr + 1);
     }
-    // Caso 5: "-read file ptr size" -> Leer un archivo en memoria
-    else if (strcmp(tr[0], "-read") == 0 && tr[1] != NULL && tr[2] != NULL) {
-        Cmd_ReadFile(tr + 1);
+    // Caso 5: "-delkey cl" -> Eliminar una clave de memoria compartida
+    else if (strcmp(tr[0], "-delkey") == 0 && tr[1] != NULL) {
+        do_DeallocateDelkey(tr + 1);
     }
-    // Caso 6: "-pmap" -> Mostrar el mapa de memoria
-    else if (strcmp(tr[0], "-pmap") == 0) {
-        Do_pmap();  // Realiza el pmap del proceso actual
+    // Caso 6: "-addr ptr" -> Mostrar información sobre un puntero
+    else if (strcmp(tr[0], "-addr") == 0 && tr[1] != NULL) {
+        void *ptr = (void *)strtoull(tr[1], NULL, 16);
+        printf("Información sobre la dirección %p:\n", ptr);
+        // Aquí puedes añadir lógica para buscar y mostrar detalles del puntero
     }
     // Caso por defecto si no se reconoce el comando
     else {
