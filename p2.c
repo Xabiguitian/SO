@@ -316,24 +316,34 @@ void memfill(char *trozos[]){
 }*/
 
 void allocate(char *tr[]) {
-    if (tr[0] == NULL) {
+    if (tr[1] == NULL) {
         printf("Debe proporcionar un argumento.\n");
         return;
     }
 
-    if (strcmp(tr[0], "-malloc") == 0 && tr[1] != NULL) {
-        size_t tam = (size_t)strtoul(tr[1], NULL, 10);
+    if (strcmp(tr[1], "-malloc") == 0 && tr[2] != NULL) {
+    size_t tam = (size_t)strtoul(tr[2], NULL, 10);
+    if (tam == 0) {
+        printf("No se puede asignar memoria de tamaño 0\n");
+        return;
+    }
+
+    // Usamos Recursiva para simular asignación con malloc
+    Recursiva(tam);
+    }
+    else if (strcmp(tr[1], "-mmap") == 0 && tr[1] != NULL) {
+        if (tr[2] == NULL) {
+            printf("Debe proporcionar un tamaño para -malloc.\n");
+            return;
+        }
+        size_t tam = (size_t)strtoul(tr[2], NULL, 10);
         if (tam == 0) {
-            printf("No se puede asignar memoria de tamaño 0\n");
+            printf("No se puede asignar memoria de tamaño 0.\n");
             return;
         }
 
-        // Usamos Recursiva para simular asignación con malloc
-        Recursiva(tam);
-    }
-    else if (strcmp(tr[0], "-mmap") == 0 && tr[1] != NULL) {
-        char *fichero = tr[1];
-        char *perm = tr[2];
+        char *fichero = tr[2];  // Archivo debe estar en tr[2]
+        char *perm = tr[3];      // Permisos en tr[3]
         int protection = 0;
 
         if (perm) {
@@ -344,11 +354,17 @@ void allocate(char *tr[]) {
 
         do_AllocateMmap(tr + 1);  // Se delega al método predefinido
     }
-    else if (strcmp(tr[0], "-create") == 0 && tr[1] != NULL && tr[2] != NULL) {
-        do_AllocateCreateshared(tr + 1);
+    else if (strcmp(tr[1], "-create") == 0 && tr[2] != NULL && tr[3] != NULL) {
+        do_AllocateCreateshared(tr + 1);  // Asume que tr[2] es el archivo y tr[3] son otros parámetros
     }
-    else if (strcmp(tr[0], "-shared") == 0 && tr[1] != NULL) {
-        do_AllocateShared(tr + 1);
+    else if (strcmp(tr[1], "-shared") == 0 && tr[2] != NULL) {
+        key_t clave = (key_t)strtoul(tr[2], NULL, 10);  // Convierte el argumento a clave
+        if (clave == 0) {
+            printf("Clave inválida para memoria compartida.\n");
+            return;
+        }
+
+        do_AllocateShared(tr + 1);  // Llama a la función correspondiente
     }
     else {
         printf("Comando no reconocido o parámetros incorrectos.\n");
@@ -490,7 +506,7 @@ void *ObtenerMemoriaShmget(key_t clave, size_t tam) {
         return NULL;
     }
     shmctl(id, IPC_STAT, &s);
-    InsertarNodoShared(L, p, s.shm_segsz, clave);
+    InsertarNodoShared(&L, p, s.shm_segsz, clave);
     return p;
 }
 

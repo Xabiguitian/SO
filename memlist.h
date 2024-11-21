@@ -44,7 +44,7 @@ typedef struct  {
     int lastPos;
 } tListM;
 
-tListM *L = NULL;
+tListM L;
 
 void createEmptyMemList(tListM *memList);
 bool isEmptyMemList(tListM memList);
