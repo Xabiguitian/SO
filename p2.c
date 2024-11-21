@@ -338,63 +338,38 @@ void allocate(char *tr[]) {
             return;
         }
 
-        void *ptr = AsignarMemoriaMalloc(tam);
-        if (ptr != NULL) {
-            dataMem nuevoBloque = {tam, ptr, "fecha_placeholder", .Union.fichero = -1, .cmdType = 0};
-            InsertarBloqueMemoria(nuevoBloque);
-            printf("Bloque de memoria de %lu bytes asignado con malloc en %p\n", (unsigned long)tam, ptr);
-        } else {
-            printf("Error al asignar memoria con malloc\n");
-        }
+        // Asignar memoria automática o estática según sea necesario
+        Recursiva(tam);
     }
     // Caso 2: "-mmap file perm" -> Asignar memoria mapeando un archivo
-    else if (strcmp(tr[0], "-mmap") == 0 && tr[1] != NULL && tr[2] != NULL) {
+    else if (strcmp(tr[0], "-mmap") == 0 && tr[1] != NULL) {
         char *fichero = tr[1];
         char *perm = tr[2];
         int protection = 0;
-        
-        if (strchr(perm, 'r') != NULL) protection |= PROT_READ;
-        if (strchr(perm, 'w') != NULL) protection |= PROT_WRITE;
-        if (strchr(perm, 'x') != NULL) protection |= PROT_EXEC;
 
-        void *ptr = AsignarMemoriaMmap(fichero, protection);
-        if (ptr != NULL) {
-            dataMem nuevoBloque = {0, ptr, "fecha_placeholder", .Union.fichero = open(fichero, O_RDONLY), .cmdType = 1};
-            InsertarBloqueMemoria(nuevoBloque);
-            printf("Archivo %s mapeado a memoria en %p\n", fichero, ptr);
-        } else {
-            printf("Error al mapear el archivo %s\n", fichero);
+        if (perm) {
+            if (strchr(perm, 'r') != NULL) protection |= PROT_READ;
+            if (strchr(perm, 'w') != NULL) protection |= PROT_WRITE;
+            if (strchr(perm, 'x') != NULL) protection |= PROT_EXEC;
         }
+
+        do_AllocateMmap(tr + 1);  // Se delega al método predefinido
     }
     // Caso 3: "-create shared cl n" -> Asignar memoria compartida
     else if (strcmp(tr[0], "-create") == 0 && tr[1] != NULL && tr[2] != NULL) {
-        key_t cl = (key_t)strtoul(tr[1], NULL, 10);
-        size_t tam = (size_t)strtoul(tr[2], NULL, 10);
-        if (tam == 0) {
-            printf("No se pueden asignar bloques de 0 bytes\n");
-            return;
-        }
-
-        void *ptr = AsignarMemoriaShared(cl, tam);
-        if (ptr != NULL) {
-            dataMem nuevoBloque = {tam, ptr, "fecha_placeholder", .Union.key = (int)cl, .cmdType = 2};
-            InsertarBloqueMemoria(nuevoBloque);
-            printf("Memoria compartida con clave %lu asignada en %p\n", (unsigned long)cl, ptr);
-        } else {
-            printf("Error al asignar memoria compartida con clave %lu\n", (unsigned long)cl);
-        }
+        do_AllocateCreateshared(tr + 1);
     }
     // Caso 4: "-shared cl" -> Asignar memoria compartida ya creada
     else if (strcmp(tr[0], "-shared") == 0 && tr[1] != NULL) {
-        key_t cl = (key_t)strtoul(tr[1], NULL, 10);
-        void *ptr = AsignarMemoriaShared(cl, 0);  // Solo obtención, sin tamaño
-        if (ptr != NULL) {
-            dataMem nuevoBloque = {0, ptr, "fecha_placeholder", .Union.key = (int)cl, .cmdType = 3};
-            InsertarBloqueMemoria(nuevoBloque);
-            printf("Memoria compartida con clave %lu asignada en %p\n", (unsigned long)cl, ptr);
-        } else {
-            printf("Error al obtener memoria compartida con clave %lu\n", (unsigned long)cl);
-        }
+        do_AllocateShared(tr + 1);
+    }
+    // Caso 5: "-read file ptr size" -> Leer un archivo en memoria
+    else if (strcmp(tr[0], "-read") == 0 && tr[1] != NULL && tr[2] != NULL) {
+        Cmd_ReadFile(tr + 1);
+    }
+    // Caso 6: "-pmap" -> Mostrar el mapa de memoria
+    else if (strcmp(tr[0], "-pmap") == 0) {
+        Do_pmap();  // Realiza el pmap del proceso actual
     }
     // Caso por defecto si no se reconoce el comando
     else {
