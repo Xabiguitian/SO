@@ -21,18 +21,6 @@ double doubleGlobSN;
 char charGlobSN;
 
 
-/*void deallocateGen();
-void allocateGen();
-void memfill();
-void memdump();
-void memoryGen();
-void readfile();
-void writefile();
-void writeC();
-void readC();
- */
-
-
 
 //FUNCION AUXILIAR PARA RECURSE
 void Recursiva (int n){
@@ -44,7 +32,6 @@ void Recursiva (int n){
     if (n>0)
         Recursiva(n-1);
 }
-
 //COMANDO RECURSE
 void recurse(char *trozos[]){
     if (trozos[1]==NULL){
@@ -53,6 +40,7 @@ void recurse(char *trozos[]){
         Recursiva(atoi(trozos[1]));
     }
 }
+/*
 //FUNCION PARA IMPRIMIR LA LISTA DE MEMORIA
 void printMemoryList(tListM mL) {
     int p;
@@ -77,7 +65,8 @@ void printMemoryList(tListM mL) {
         }
     }
 }
-
+*/
+/*
 //FUNCIÓN PARA MEMORY -PMAP
 void pMap(void){
     id_t pid;
@@ -109,7 +98,8 @@ void pMap(void){
     }
     waitpid (pid,NULL,0);
 }
-
+*/
+/*
 void memoryGen(char *trozos[], tListM mL) {
     int static a;
     double static b;
@@ -146,9 +136,8 @@ void memoryGen(char *trozos[], tListM mL) {
         pMap();
     }
 }
-
-
-
+*/
+/*
 void writefile(char *trozos[]) {
     void *direccion;
     char sobrescribir=0;
@@ -201,9 +190,9 @@ void writefile(char *trozos[]) {
         close(df);
     }
 
-    }
-
-
+}
+*/
+/*
 void writeC(char *trozos[]){
     int  df;
     if(trozos[1]==NULL){
@@ -216,15 +205,15 @@ void writeC(char *trozos[]){
     }
     writefile(trozos);
 }
-
-
-
+*/
+/*
 void * cadtop(char *s){
     void *p;
     sscanf(s, "%p", &p);
     return p;
 }
-
+*/
+/*
 ssize_t LeerFichero (char *f, void *p, size_t cont)
 {
     struct stat s;
@@ -233,7 +222,7 @@ ssize_t LeerFichero (char *f, void *p, size_t cont)
 
     if (stat (f,&s)==-1 || (df=open(f,O_RDONLY))==-1)
         return -1;
-    if (cont==-1)   /* si pasamos -1 como bytes a leer lo leemos entero*/
+    if (cont==-1)   // si pasamos -1 como bytes a leer lo leemos entero
         cont=s.st_size;
     if ((n=read(df,p,cont))==-1){
         aux=errno;
@@ -244,17 +233,18 @@ ssize_t LeerFichero (char *f, void *p, size_t cont)
     close (df);
     return n;
 }
-
+*/
+/*
 void Cmd_ReadFile (char *trozos[])
 {
     void *p;
-    size_t cont=-1;  /*si no pasamos tamano se lee entero */
+    size_t cont=-1;  //si no pasamos tamano se lee entero
     ssize_t n;
     if (trozos[0]==NULL || trozos[1]==NULL){
         printf ("faltan parametros\n");
         return;
     }
-    p=cadtop(trozos[1]);  /*convertimos de cadena a puntero*/
+    p=cadtop(trozos[1]);  //convertimos de cadena a puntero
     if (trozos[2]!=NULL)
         cont=(size_t) atoll(trozos[2]);
 
@@ -263,7 +253,8 @@ void Cmd_ReadFile (char *trozos[])
     else
         printf ("leidos %lld bytes de %s en %p\n",(long long) n,trozos[0],p);
 }
-
+*/
+/*
 void readC(char *trozos[]){
     void *p;
     size_t cont;
@@ -286,14 +277,13 @@ void readC(char *trozos[]){
     else
         cont=-1;
 
-    if((n=LeerFichero(df,p,cont))==-1)
+    if((n=LeerFichero(trozos[0], p, cont))==-1)
         perror("Imposible leer desde el fichero");
     else
         printf("Leídos %lld bytes desde el descriptor de archivo %d en %p\n", (long long) n, df, p);
-
 }
-
-
+*/
+/*
 //función auxiliar para memfill
 void fillMem(void *p, size_t size, unsigned char value){
     unsigned char *pt=(unsigned char *)p;
@@ -303,7 +293,8 @@ void fillMem(void *p, size_t size, unsigned char value){
         *(pt+aux)=value;
     }
 }
-
+*/
+/*
 void memfill(char *trozos[]){
     void *p=NULL;
     size_t nbytes=128;
@@ -322,7 +313,7 @@ void memfill(char *trozos[]){
         byte=(unsigned char) trozos[3][0];
     }
     fillMem(p,nbytes,byte);
-}
+}*/
 
 void allocate(char *tr[]) {
     if (tr[0] == NULL) {
@@ -330,7 +321,6 @@ void allocate(char *tr[]) {
         return;
     }
 
-    // Caso 1: "-malloc n" -> Asignar memoria con malloc
     if (strcmp(tr[0], "-malloc") == 0 && tr[1] != NULL) {
         size_t tam = (size_t)strtoul(tr[1], NULL, 10);
         if (tam == 0) {
@@ -341,7 +331,6 @@ void allocate(char *tr[]) {
         // Usamos Recursiva para simular asignación con malloc
         Recursiva(tam);
     }
-    // Caso 2: "-mmap file perm" -> Asignar memoria mapeando un archivo
     else if (strcmp(tr[0], "-mmap") == 0 && tr[1] != NULL) {
         char *fichero = tr[1];
         char *perm = tr[2];
@@ -355,32 +344,19 @@ void allocate(char *tr[]) {
 
         do_AllocateMmap(tr + 1);  // Se delega al método predefinido
     }
-    // Caso 3: "-create shared cl n" -> Asignar memoria compartida
     else if (strcmp(tr[0], "-create") == 0 && tr[1] != NULL && tr[2] != NULL) {
         do_AllocateCreateshared(tr + 1);
     }
-    // Caso 4: "-shared cl" -> Asignar memoria compartida ya creada
     else if (strcmp(tr[0], "-shared") == 0 && tr[1] != NULL) {
         do_AllocateShared(tr + 1);
     }
-    // Caso 5: "-delkey cl" -> Eliminar una clave de memoria compartida
-    else if (strcmp(tr[0], "-delkey") == 0 && tr[1] != NULL) {
-        do_DeallocateDelkey(tr + 1);
-    }
-    // Caso 6: "-addr ptr" -> Mostrar información sobre un puntero
-    else if (strcmp(tr[0], "-addr") == 0 && tr[1] != NULL) {
-        void *ptr = (void *)strtoull(tr[1], NULL, 16);
-        printf("Información sobre la dirección %p:\n", ptr);
-        // Aquí puedes añadir lógica para buscar y mostrar detalles del puntero
-    }
-    // Caso por defecto si no se reconoce el comando
     else {
         printf("Comando no reconocido o parámetros incorrectos.\n");
     }
 }
 
 
-void deallocate(char *tr[]) {
+/*void deallocate(char *tr[]) {
     if (tr[0] == NULL) {
         printf("Debe proporcionar un argumento.\n");
         return;
@@ -442,7 +418,7 @@ void deallocate(char *tr[]) {
         free(addr);  // Liberar memoria
         printf("Bloque de memoria en %p liberado\n", addr);
     }
-}
+}*/
 
 /*void allocateGen(char *trozos[]){
     if(trozos[1]==NULL){
@@ -474,7 +450,24 @@ void deallocate(char *tr[]) {
 
     for (i = 0; i < cont; i++)
         arr[i] = byte;
+}*/
+
+void InsertarNodoShared(tListM *memList, void *dir, size_t tam, key_t clave) {
+    // Crear un nuevo bloque de datos de tipo SHARED
+    dataMem nuevoBloque;
+    
+    // Inicializar los campos del nuevo bloque
+    nuevoBloque.size = tam;
+    nuevoBloque.dir = dir;
+    nuevoBloque.cmdType = SHARED;
+    nuevoBloque.Union.key = clave;
+    
+    // Insertar el nuevo bloque en la lista
+    if (!insertMemListPos(memList, nuevoBloque)) {
+        printf("Error al insertar el bloque de memoria compartida.\n");
+    }
 }
+
 
 void *ObtenerMemoriaShmget(key_t clave, size_t tam) {
     void *p;
@@ -497,7 +490,7 @@ void *ObtenerMemoriaShmget(key_t clave, size_t tam) {
         return NULL;
     }
     shmctl(id, IPC_STAT, &s);
-    InsertarNodoShared(&L, p, s.shm_segsz, clave);
+    InsertarNodoShared(L, p, s.shm_segsz, clave);
     return p;
 }
 
@@ -523,18 +516,28 @@ void do_AllocateCreateshared (char *tr[]) { //Crea un bloque de memoria comparti
         printf ("Imposible asignar memoria compartida clave %lu:%s\n",(unsigned long) cl,strerror(errno));
 }
 
-void ImprimirListaShared(tListM  * memList) {
-    int aux;
+void ImprimirListaShared(tListM *memList) {
+    int i;
     dataMem itm;
 
-    printf("LISTA DE BLOQUES DE MEMORIA COMPARTIDA:\n");
+    // Si la lista está vacía
     if (isEmptyMemList(*memList)) {
-        printf("\b");
-    } else {
-        for (aux = firstMem(*memList); aux <= lastMem(*memList); aux++) {
-            itm = getDataMemList(aux, *memList);
-            if (itm.cmdType == SHARED)
-                printf("\t%p\t\t%zu %s shared (key: %d)\n", itm.dir, itm.size, itm.date, itm.Union.key);
+        printf("La lista de bloques de memoria compartida está vacía.\n");
+        return;
+    }
+
+    printf("Lista de bloques de memoria compartida:\n");
+    printf("%-20s %-20s %-10s %-10s\n", "Clave", "Dirección", "Tamaño", "Fecha");
+    printf("------------------------------------------------------------\n");
+
+    // Recorremos todos los bloques de memoria en la lista
+    for (i = firstMemListPos(*memList); i <= lastMemListPos(*memList); i++) {
+        itm = getDataItemList(*memList, i);
+
+        // Verifica si el bloque de memoria es de tipo SHARED
+        if (itm.cmdType == SHARED) {
+            // Imprime la información del bloque de memoria compartida
+            printf("%-20d %-20p %-10zu %-10s\n", itm.Union.key, itm.dir, itm.size, itm.date);
         }
     }
 }
@@ -574,17 +577,28 @@ void * MapearFichero (char * fichero, int protection){ //mapea un fichero
     return p;
 }
 
-void ImprimirListaMmap(tListM *memList){
-    int pos;
+void ImprimirListaMmap(tListM *memList) {
+    int i;
     dataMem itm;
-    printf("LISTA DE BLOQUES ASIGNADOS PARA EL PROCESO: ½d \n",getpid());
-    if(isEmptyMemList(*memList))
-        printf("\b");
-    else{
-        for(pos= firstMem(*memList);pos<=lastMem(*memList);pos++){
-            itm=getDataMemList(pos, *memList);
-            if(itm.cmdType==MMAP)
-                printf("\t%p\t\t%zu %s %s (descriptor %d)\n", itm.dir, itm.size, itm.date, itm.Union.fichero.name, itm.Union.fichero.id);
+
+    // Si la lista está vacía
+    if (isEmptyMemList(*memList)) {
+        printf("La lista de memoria está vacía.\n");
+        return;
+    }
+
+    printf("Lista de ficheros mapeados:\n");
+    printf("%-30s %-20s %-10s\n", "Nombre del fichero", "Dirección", "Tamaño");
+    printf("------------------------------------------------------------\n");
+
+    // Recorremos todos los bloques de memoria en la lista
+    for (i = firstMemListPos(*memList); i <= lastMemListPos(*memList); i++) {
+        itm = getDataItemList(*memList, i);
+
+        // Verifica si el bloque de memoria es de tipo MMAP
+        if (itm.cmdType == MMAP) {
+            // Imprime la información del bloque mapeado
+            printf("%-30s %-20p %-10zu\n", itm.Union.fichero.filename, itm.dir, itm.size);
         }
     }
 }
@@ -606,7 +620,7 @@ void do_AllocateMmap(char *arg[]){//funcion para hacer un mapeado de un fichero
     else
         printf ("fichero %s mapeado en %p\n", arg[0], p);
 }
-
+/*
 void do_DeallocateDelkey (char *args[]){ //función para borrar una clave de un bloque de memoria compartida
     key_t clave;
     int id;
@@ -744,6 +758,7 @@ void do_Deallocate(char *trozos[]){
 }*/
 
 /*void inicializa() {}
+
 void inicializaM() {
 
 }

@@ -16,14 +16,6 @@
 #define MAX_FILENAME 1024
 
 
-
-typedef struct MemBlock {
-    void *ptr;
-    size_t size;
-    char type[10]; // malloc, mmap, shared, etc.
-    struct MemBlock *next;
-} MemBlock;
-
 typedef struct fich {
     int df;
     char filename[MAX_FILENAME];
@@ -52,6 +44,8 @@ typedef struct  {
     int lastPos;
 } tListM;
 
+tListM *L = NULL;
+
 void createEmptyMemList(tListM *memList);
 bool isEmptyMemList(tListM memList);
 int nextMemListPos(int pMem, tListM memList);
@@ -64,6 +58,7 @@ void freeMemList(tListM *memList);
 void deleteItemMemList( int pMem,tListM* memList);
 void deleteMemList(tListM* memList);
 void addMemBlock(void *ptr, size_t size, const char *type, tListM *mL);
+void LlenarMemoria(void *ptr, size_t tam, int valor);
 void *AsignarMemoriaMalloc(size_t tam);
 void *AsignarMemoriaMmap(char *fichero, int protection);
 void *AsignarMemoriaShared(key_t cl, size_t tam);

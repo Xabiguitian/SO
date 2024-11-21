@@ -95,6 +95,12 @@ void deleteMemList(tListM* memList) {
     }
 }
 
+void LlenarMemoria(void *ptr, size_t tam, int valor) {
+    if (ptr != NULL) {
+        memset(ptr, valor, tam);  // Rellena la memoria con el valor proporcionado
+    }
+}
+
 void *AsignarMemoriaMalloc(size_t tam) {
     void *ptr = malloc(tam);
     if (ptr != NULL) {
