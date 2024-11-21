@@ -1,6 +1,4 @@
-//
-// Created by angela on 24/09/24.
-//
+
 
 #ifndef HISTORIAL_H
 #define HISTORIAL_H

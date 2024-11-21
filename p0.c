@@ -164,7 +164,19 @@ void help(tList *historial, char * trozos[]){
   }else if(strcmp(trozos[1],"recurse")==0){
     printf("ejecuta la función recursiva n veces.\n");
   }else if(strcmp(trozos[1], "memory")==0){
-
+      printf("mem [-blocks|-funcs|-vars|-all|-pmap] ...\nMuestra detalles de la memoria del proceso\nblocks: los bloques de memoria asignados\n-funcs: las direcciones de las funciones\n-vars: las direcciones de las variables\n-all: todo\npmap: muestra la salida del comando pmap(o similar)\n");
+  }else if(strcmp(trozos[1], "read")==0){
+    printf("Lo mismo que readfile pero usamos un descriptor de archivo (ya abierto)\n");
+  }else if(strcmp(trozos[1], "write")==0){
+    printf("Lo mismo que writefile pero usamos un descriptor de archivo (ya abierto)\n");
+  }else if(strcmp(trozos[1], "readfile")==0){
+    printf("Lee cont bytes de un archivo en la dirección de memoria addr\n");
+  }else if(strcmp(trozos[1], "writefile")==0){
+    printf("escribe en un archivo cont bytes comenzando en la dirección de memoria addr\n");
+  }else if(strcmp(trozos[1], "memdump")==0){
+      printf("Vuelca el contenido de cont bytes de memoria en la dirección addr a la pantalla. Vuelca códigos hexadecimales y, para caracteres imprimibles, el carácter asociado\n");
+  }else if(strcmp(trozos[1], "memfill")==0){
+      printf("dumps llena la memoria con el carácter ch, comenzando en la dirección addr, para con tbytes\n");
   }else
     printf("No se reconoce el comando.\n");
 }

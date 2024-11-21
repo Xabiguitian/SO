@@ -1,9 +1,4 @@
-//
-// Created by angela on 22/10/24.
-//
-//
-// Created by angela on 24/09/24.
-//
+
 
 #include "historial.h"
 
@@ -62,8 +57,8 @@ bool insertItemH(char commd[] , tList *historial){
 }
 int nextH(int pHist, tList historial){
     if(pHist==historial.lastPos){
-    return -1;
+        return -1;
     }else{
         return ++pHist;
-	}
+    }
 }

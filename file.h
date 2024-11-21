@@ -1,9 +1,7 @@
-//
-// Created by angela on 24/10/24.
-//
 
 #ifndef FILE_H
 #define FILE_H
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -50,5 +48,7 @@ void EliminarFicheros(filelist *F);
 bool añadirFicheros(int id, char *name, int mode, filelist * F);
 void listarFicheros(filelist * F);
 void EliminarFichero(filelist *F, int df);
+
+
 
 #endif //FILE_H

@@ -29,7 +29,7 @@ void leerComando(char *command,char * trozos[]) {
 
 
 //FUNCIÓNES PARA PROCESAR LOS COMANDOS
-void processCommand(char *command, tList *historial, char * trozos[],int *fin,filelist *F, tListM mL ) {
+void processCommand(char *command, tList *historial, char * trozos[],int *fin,filelist *F, tListM * mL ) {
     if(trozos[0]!=NULL){
         insertItemH(command,historial);
         if(strcmp(trozos[0], "authors")==0) {
@@ -54,6 +54,7 @@ void processCommand(char *command, tList *historial, char * trozos[],int *fin,fi
             help(historial, trozos);
         }else if(strcmp(trozos[0],"quit")==0||strcmp(trozos[0],"exit")==0||strcmp(trozos[0],"bye")==0) {
             deleteListH(historial);
+            deleteMemList(mL);
             EliminarFicheros(F);
             *fin=0;
             off();
@@ -84,21 +85,25 @@ void processCommand(char *command, tList *historial, char * trozos[],int *fin,fi
         }else if(strcmp(trozos[0],"erase")==0) {
             erase(trozos);
         }else if(strcmp(trozos[0], "recurse")==0){
-            //recurse(trozos);
+                  recurse(trozos);
         }else if(strcmp(trozos[0],"memory")==0) {
-            //memoryGen(trozos,mL);
+            memoryGen(trozos,mL);
         }else if(strcmp(trozos[0],"writefile")==0){
-            //writefile(trozos);
+           writefile(trozos);
         }else if(strcmp(trozos[0],"readfile")==0){
-            //Cmd_ReadFile(trozos);
+          Cmd_ReadFile(trozos);
         }else if(strcmp(trozos[0],"write")==0){
-            //writeC(trozos);
+          writeC(trozos);
         }else if(strcmp(trozos[0],"read")==0){
-            //readC(trozos);
+          readC(trozos);
+        }else if(strcmp(trozos[0], "memfill")==0){
+          memfill(trozos);
+        }else if(strcmp(trozos[0],"memdump")==0){
+          memdump(trozos);
         }else if(strcmp(trozos[0],"allocate")==0){
-            allocate(trozos);
+            allocate(trozos, *mL);
         }else if(strcmp(trozos[0],"deallocate")==0){
-            deallocate(trozos);
+            deallocate(trozos, mL);
         }else{
             printf("No se reconoce el comando.\n");
         }
@@ -130,7 +135,7 @@ int main() {
     do {
         imprimirPrompt();
         leerComando(command,trozos);
-        processCommand(command, &historial, trozos,&fin ,&F,mL);
+        processCommand(command, &historial, trozos,&fin ,&F,&mL);
     }while(fin==1);
-    free(&L);
+    printf("\n");
 }

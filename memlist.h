@@ -13,8 +13,8 @@
 
 #define MAXDATA 4096
 #define MAX_LISTMEM 2048
-#define MAX_FILENAME 1024
-
+#define MAX_FILENAME 256
+#define NULLM -1
 
 typedef struct fich {
     int df;
@@ -28,14 +28,12 @@ typedef enum cmd {
 
 
 typedef struct dataMem {
-    size_t size;        // Tamaño del bloque de memoria
-    void *dir;          // Dirección del bloque de memoria
-    char date[128];     // Fecha o información adicional
-    union {
-        int key;        // Clave para memoria compartida
-        fich fichero;   // Información de archivo
-    } Union;            // Unión para clave o archivo
-    cmd cmdType;        // Tipo de comando (malloc, mmap, etc.)
+    size_t size;
+    void * dir;
+    char date[128];
+     int key;
+    fich fichero;
+    cmd cmdType;
 } dataMem;
 
 
@@ -43,8 +41,6 @@ typedef struct  {
     dataMem itemM[MAX_LISTMEM];
     int lastPos;
 } tListM;
-
-tListM L;
 
 void createEmptyMemList(tListM *memList);
 bool isEmptyMemList(tListM memList);
@@ -57,12 +53,7 @@ dataMem getDataItemList(tListM memList, int pMem) ;
 void freeMemList(tListM *memList);
 void deleteItemMemList( int pMem,tListM* memList);
 void deleteMemList(tListM* memList);
-void addMemBlock(void *ptr, size_t size, const char *type, tListM *mL);
-void LlenarMemoria(void *ptr, size_t tam, int valor);
-void *AsignarMemoriaMalloc(size_t tam);
-void *AsignarMemoriaMmap(char *fichero, int protection);
-void *AsignarMemoriaShared(key_t cl, size_t tam);
-void InsertarBloqueMemoria(dataMem nuevoBloque);
 void InsertarNodoMmap(tListM *lista, void *p, size_t tam, const char *filename, int df);
+
 
 #endif //MEMLIST_H

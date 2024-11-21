@@ -1,12 +1,4 @@
-//
-// Created by angela on 24/10/24.
-//
-//
-// Created by angela on 22/10/24.
-//
-//
-// Created by angela on 24/09/24.
-//
+
 #include "file.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,7 +6,7 @@
 #include <fcntl.h>
 
 
-//FUNCIONES AUXILIARES PARA EL HISTORIAL
+
 
 void createEmptyListF(filelist *F){
     F->lastPos=NULLF;
