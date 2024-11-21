@@ -160,3 +160,24 @@ void InsertarBloqueMemoria(dataMem nuevoBloque) {
         printf("Lista de memoria llena\n");
     }
 }
+
+void InsertarNodoMmap(tListM *lista, void *p, size_t tam, const char *filename, int df) {
+    if (lista->lastPos >= MAX_LISTMEM) {
+        printf("No hay espacio para más bloques de memoria.\n");
+        return;
+    }
+
+    // Obtener la fecha y hora actual
+    time_t now = time(NULL);
+    struct tm *tm_info = localtime(&now);
+    strftime(lista->itemM[lista->lastPos].date, 128, "%Y-%m-%d %H:%M:%S", tm_info);
+
+    // Llenar la entrada de la lista
+    lista->itemM[lista->lastPos].size = tam;
+    lista->itemM[lista->lastPos].dir = p;
+    lista->itemM[lista->lastPos].cmdType = MMAP;
+    lista->itemM[lista->lastPos].Union.fichero.df = df;
+    strncpy(lista->itemM[lista->lastPos].Union.fichero.filename, filename, MAX_FILENAME);
+
+    lista->lastPos++;
+}

@@ -32,6 +32,7 @@ void recurse(char *trozos[]);
 //void readC(char *trozos[]);
 //void fillMem(void *p, size_t size, unsigned char value);
 //void memfill(char *trozos[]);
+void aux_malloc(char *trozos[], tListM *mL);
 void allocate(char *tr[]);
 void deallocate(char *tr[]);
 void InsertarNodoShared(tListM *memList, void *dir, size_t tam, key_t clave);

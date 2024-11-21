@@ -63,5 +63,6 @@ void *AsignarMemoriaMalloc(size_t tam);
 void *AsignarMemoriaMmap(char *fichero, int protection);
 void *AsignarMemoriaShared(key_t cl, size_t tam);
 void InsertarBloqueMemoria(dataMem nuevoBloque);
+void InsertarNodoMmap(tListM *lista, void *p, size_t tam, const char *filename, int df);
 
 #endif //MEMLIST_H

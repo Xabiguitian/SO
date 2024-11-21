@@ -40,17 +40,17 @@ void recurse(char *trozos[]){
         Recursiva(atoi(trozos[1]));
     }
 }
-/*
-//FUNCION PARA IMPRIMIR LA LISTA DE MEMORIA
+
+
 void printMemoryList(tListM mL) {
     int p;
     dataMem itm;
 
     printf("******Lista de bloques asignados para el proceso %d\n", getpid());
 
-    if(isEmptyMemList(mL))
-        printf("\b");
-    else {
+    if(isEmptyMemList(mL)){
+        printf("\n");
+    } else {
         for(p = firstMemListPos(mL); p <= lastMemListPos(mL); p++) {
             itm = getDataItemList(mL, p);
 
@@ -65,7 +65,6 @@ void printMemoryList(tListM mL) {
         }
     }
 }
-*/
 /*
 //FUNCIÓN PARA MEMORY -PMAP
 void pMap(void){
@@ -315,61 +314,110 @@ void memfill(char *trozos[]){
     fillMem(p,nbytes,byte);
 }*/
 
+void aux_malloc(char *trozos[], tListM *mL) {
+    size_t tam;
+    dataMem item;
+    time_t tiempo = time(0);
+    struct tm * tlocal = localtime(&tiempo);
+
+    if(trozos[2] == NULL || (trozos[0] != NULL && trozos[1] == NULL))
+        printMemoryList(*mL);
+    else {
+        tam = strtol(trozos[2], NULL, 10);
+
+        if(tam == 0)
+            printf("No se asignan bloques de 0 bytes\n");
+        else {
+            item.cmdType = MALLOC;
+            item.size = tam;
+            item.dir = malloc(tam);
+            strftime(item.date, 128, "%b %d %H:%M", tlocal);
+
+            if(item.dir == NULL) {
+                perror("No se pudo conseguir la direccion.");
+                return;
+            } else {
+                if(insertMemListPos(mL, item))
+                    printf("Asignados %zu bytes en %p\n", item.size, item.dir);
+                else
+                    perror("Imposible hacer malloc.");
+            }
+        }
+    }
+}
+
 void allocate(char *tr[]) {
-    if (tr[1] == NULL) {
-        printf("Debe proporcionar un argumento.\n");
+    if (tr[1] == NULL || tr[2] == NULL) {
+        aux_malloc(tr, &L);
         return;
     }
 
+    // Caso de malloc
     if (strcmp(tr[1], "-malloc") == 0 && tr[2] != NULL) {
         size_t tam = (size_t)strtoul(tr[2], NULL, 10);
         if (tam == 0) {
             printf("No se puede asignar memoria de tamaño 0\n");
             return;
         }
-
-        // Usamos Recursiva para simular asignación con malloc
-        Recursiva(tam);
+        aux_malloc(tr, &L);  // Llamada a la función que maneja malloc
     }
-    else if (strcmp(tr[1], "-mmap") == 0 && tr[1] != NULL) {
-        if (tr[2] == NULL) {
-            printf("Debe proporcionar un tamaño para -malloc.\n");
+    // Caso de mmap
+    else if (strcmp(tr[1], "-mmap") == 0 && tr[2] != NULL) {
+        if (tr[3] == NULL) {
+            printf("Debe proporcionar permisos para -mmap.\n");
             return;
         }
-        size_t tam = (size_t)strtoul(tr[2], NULL, 10);
-        if (tam == 0) {
-            printf("No se puede asignar memoria de tamaño 0.\n");
-            return;
-        }
-
-        char *fichero = tr[2];  // Archivo debe estar en tr[2]
-        char *perm = tr[3];      // Permisos en tr[3]
+        
+        char *fichero = tr[2];  // Archivo para mapear
+        char *perm = tr[3];      // Permisos para mmap
         int protection = 0;
 
-        // Usar 'protection' para llamar a mmap() o para otro propósito
-        if (mmap(fichero, tam, protection, MAP_SHARED, -1, 0) == MAP_FAILED) {
+        // Establecer los permisos para mmap
+        if (strchr(perm, 'r') != NULL) protection |= PROT_READ;
+        if (strchr(perm, 'w') != NULL) protection |= PROT_WRITE;
+        if (strchr(perm, 'x') != NULL) protection |= PROT_EXEC;
+
+        // Mapeo del archivo en memoria
+        int fd = open(fichero, O_RDONLY);  // Abrir el archivo
+        if (fd == -1) {
+            perror("Error al abrir el archivo");
+            return;
+        }
+
+        struct stat st;
+        if (fstat(fd, &st) == -1) {
+            perror("Error al obtener el tamaño del archivo");
+            close(fd);
+            return;
+        }
+
+        size_t tam = st.st_size;  // Tamaño del archivo
+
+        void *p = mmap(NULL, tam, protection, MAP_PRIVATE, fd, 0);  // Mapear archivo
+        if (p == MAP_FAILED) {
             perror("Error al mapear el archivo");
+            close(fd);
+            return;
         }
 
-        if (perm) {
-            if (strchr(perm, 'r') != NULL) protection |= PROT_READ;
-            if (strchr(perm, 'w') != NULL) protection |= PROT_WRITE;
-            if (strchr(perm, 'x') != NULL) protection |= PROT_EXEC;
-        }
+        // Actualizar la lista de bloques de memoria
+        InsertarNodoMmap(&L, p, tam, fichero, fd);
 
-        do_AllocateMmap(tr + 1);  // Se delega al método predefinido
+        printf("Archivo %s mapeado en %p con permisos %s.\n", fichero, p, perm);
+        close(fd);  // Cerrar el descriptor de archivo
     }
-    else if (strcmp(tr[1], "-create") == 0 && tr[2] != NULL && tr[3] != NULL) {
-        do_AllocateCreateshared(tr + 1);  // Asume que tr[2] es el archivo y tr[3] son otros parámetros
+    // Caso de memoria compartida -creada
+    else if (strcmp(tr[1], "-createshared") == 0 && tr[2] != NULL && tr[3] != NULL) {
+        do_AllocateCreateshared(tr + 2);
     }
+    // Caso de memoria compartida
     else if (strcmp(tr[1], "-shared") == 0 && tr[2] != NULL) {
         key_t clave = (key_t)strtoul(tr[2], NULL, 10);  // Convierte el argumento a clave
         if (clave == 0) {
             printf("Clave inválida para memoria compartida.\n");
             return;
         }
-
-        do_AllocateShared(tr + 1);  // Llama a la función correspondiente
+        do_AllocateShared(tr + 2);  // Llama a la función correspondiente
     }
     else {
         printf("Comando no reconocido o parámetros incorrectos.\n");
@@ -524,7 +572,7 @@ void ImprimirListaShared(tListM *memList) {
 void do_AllocateShared (char *tr[])
 {
     key_t cl;
-    size_t tam;
+    //size_t tam;
     void *p;
 
     if (tr[0]==NULL) {
