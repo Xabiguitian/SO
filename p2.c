@@ -476,8 +476,8 @@ void memdump(char *trozos[]) {
 
 
 void deallocate(char *tr[], tListM *L) {
-    if (tr[1] == NULL) {
-        printf("Debe especificar el tipo de memoria a liberar.\n");
+    if (tr[1] == NULL || tr[2] == NULL) {
+        printMemoryList(*L);
         return;
     }
 
