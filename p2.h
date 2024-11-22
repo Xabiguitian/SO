@@ -23,7 +23,7 @@
 //FUNCIONES GENERALES P2
 void printMemoryList(tListM mL);
 void aux_malloc(char *trozos[], tListM *mL);
-void allocate(char *tr[], tListM L);
+void allocate(char *tr[], tListM *L);
 void Recursiva(int n);
 void recurse(char *trozos[]);
 void pMap(void);
@@ -43,10 +43,13 @@ void InsertarNodoShared(tListM *memList, void *dir, size_t tam, key_t clave);
 void *ObtenerMemoriaShmget(key_t clave, size_t tam, tListM L);
 void do_AllocateCreateshared(char *tr[], tListM L);
 void ImprimirListaShared(tListM *memList);
-void do_AllocateShared (char *tr[], tListM L);
-void do_DeallocateMalloc(size_t size, tListM L);
-void do_DeallocateMmap(char *file, tListM L);
-void deallocate_addr(void *addr, tListM L);
+void do_AllocateShared (char *tr[], tListM *L);
+void * MapearFichero (char * fichero, int protection);
+void ImprimirListaMmap(tListM *memList);
+void do_AllocateMmap(char *arg[], tListM *L);
+void do_DeallocateMalloc(size_t size, tListM *L);
+void do_DeallocateMmap(char *file, tListM *L);
+void deallocate_addr(void *addr, tListM *L);
 void do_DeallocateShared(char *key_str);
 void do_DeallocateDelkey(char *tr[]);
 

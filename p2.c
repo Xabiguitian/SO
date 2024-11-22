@@ -27,7 +27,7 @@ void printMemoryList(tListM mL) {
     printf("******Lista de bloques asignados para el proceso %d\n", getpid());
 
     if(isEmptyMemList(mL)){
-        printf("");
+        printf("\n");
     } else {
         for(p = firstMemListPos(mL); p <= lastMemListPos(mL); p++) {
             itm = getDataItemList(mL, p);
@@ -66,7 +66,6 @@ void aux_malloc(char *trozos[], tListM *mL) {
         } else {
             if(insertMemListPos(mL, item)){
                 printf("Asignados %zu bytes en %p\n", item.size, item.dir);
-                printf("%d\n", mL->itemM[mL->lastPos].key);
             }else
                 perror("Imposible hacer malloc.");
         }
@@ -75,70 +74,23 @@ void aux_malloc(char *trozos[], tListM *mL) {
 
 
 
-void allocate(char *tr[], tListM L) {
+void allocate(char *tr[], tListM *L) {
     if (tr[1] == NULL || tr[2] == NULL) {
-        printMemoryList(L);
+        printMemoryList(*L);
         return;
     }
 
     // Caso de malloc
     if (strcmp(tr[1], "-malloc") == 0 && tr[2] != NULL) {
-        size_t tam = (size_t)strtoul(tr[2], NULL, 10);
-        if (tam == 0) {
-            printf("No se puede asignar memoria de tamaño 0\n");
-            return;
-        }
-        aux_malloc(tr, &L);  // Llamada a la función que maneja malloc
-    
+        aux_malloc(tr, L);  // Llamada a la función que maneja malloc
     }
     // Caso de mmap
     else if (strcmp(tr[1], "-mmap") == 0 && tr[2] != NULL) {
-        if (tr[3] == NULL) {
-            printf("Debe proporcionar permisos para -mmap.\n");
-            return;
-        }
-
-        char *fichero = tr[2];  // Archivo para mapear
-        char *perm = tr[3];      // Permisos para mmap
-        int protection = 0;
-
-        // Establecer los permisos para mmap
-        if (strchr(perm, 'r') != NULL) protection |= PROT_READ;
-        if (strchr(perm, 'w') != NULL) protection |= PROT_WRITE;
-        if (strchr(perm, 'x') != NULL) protection |= PROT_EXEC;
-
-        // Mapeo del archivo en memoria
-        int fd = open(fichero, O_RDONLY);  // Abrir el archivo
-        if (fd == -1) {
-            perror("Error al abrir el archivo");
-            return;
-        }
-
-        struct stat st;
-        if (fstat(fd, &st) == -1) {
-            perror("Error al obtener el tamaño del archivo");
-            close(fd);
-            return;
-        }
-
-        size_t tam = st.st_size;  // Tamaño del archivo
-
-        void *p = mmap(NULL, tam, protection, MAP_PRIVATE, fd, 0);  // Mapear archivo
-        if (p == MAP_FAILED) {
-            perror("Error al mapear el archivo");
-            close(fd);
-            return;
-        }
-
-        // Actualizar la lista de bloques de memoria
-        InsertarNodoMmap(&L, p, tam, fichero, fd);
-
-        printf("Archivo %s mapeado en %p con permisos %s.\n", fichero, p, perm);
-        close(fd);  // Cerrar el descriptor de archivo
+        do_AllocateMmap(tr, L);
     }
     // Caso de memoria compartida -creada
     else if (strcmp(tr[1], "-createshared") == 0 && tr[2] != NULL && tr[3] != NULL) {
-        do_AllocateCreateshared(tr + 2, L);
+        do_AllocateCreateshared(tr + 2, *L);
     }
     // Caso de memoria compartida
     else if (strcmp(tr[1], "-shared") == 0 && tr[2] != NULL) {
@@ -166,8 +118,8 @@ void Recursiva (int n){
         Recursiva(n-1);
     }
 
-    //COMANDO RECURSE
-    void recurse(char *trozos[]){
+//COMANDO RECURSE
+void recurse(char *trozos[]){
     if (trozos[1]==NULL){
         printf("recurse [n]\t Invoca a la funcion recursiva n veces\n");
     }
@@ -503,7 +455,7 @@ void deallocate(char *tr[], tListM *L) {
         printf("Intentando liberar la dirección: %p\n", addr);
 
         // Llamamos a la función para deallocar la dirección específica
-        deallocate_addr(addr, *L);
+        deallocate_addr(addr, L);
         return;
     }
 
@@ -514,11 +466,11 @@ void deallocate(char *tr[], tListM *L) {
             return;
         }
 
-        do_DeallocateMalloc(size, *L);  // Llama a la función para liberar la memoria malloc
+        do_DeallocateMalloc(size, L);  // Llama a la función para liberar la memoria malloc
     }
     else if (strcmp(tr[1], "-mmap") == 0 && tr[2] != NULL) {
         char *file = tr[2];  // El nombre del archivo está en tr[2]
-        do_DeallocateMmap(file, *L);  // Llama a la función para liberar el mapeo del archivo
+        do_DeallocateMmap(file, L);  // Llama a la función para liberar el mapeo del archivo
     }
     else if (strcmp(tr[1], "-shared") == 0 && tr[2] != NULL) {
         char *key_str = tr[2];
@@ -628,20 +580,20 @@ void ImprimirListaShared(tListM *memList) {
     }
 }
 
-void do_AllocateShared (char *tr[], tListM L)
+void do_AllocateShared (char *tr[], tListM *L)
 {
     key_t cl;
     //size_t tam;
     void *p;
 
     if (tr[0]==NULL) {
-        ImprimirListaShared(&L);
+        ImprimirListaShared(L);
         return;
     }
 
     cl=(key_t)  strtoul(tr[0],NULL,10);
 
-    if ((p=ObtenerMemoriaShmget(cl,0,L))!=NULL)
+    if ((p=ObtenerMemoriaShmget(cl,0,*L))!=NULL)
         printf ("Asignada memoria compartida de clave %lu en %p\n",(unsigned long) cl, p);
     else
         printf ("Imposible asignar memoria compartida clave %lu:%s\n",(unsigned long) cl,strerror(errno));
@@ -690,22 +642,38 @@ void ImprimirListaMmap(tListM *memList) {
     }
 }
 
-void do_AllocateMmap(char *arg[], tListM L){//funcion para hacer un mapeado de un fichero
+void do_AllocateMmap(char *arg[], tListM *L){//funcion para hacer un mapeado de un fichero
     char *perm;
     void *p;
     int protection=0;
+    dataMem item;
+    time_t tiempo = time(0);
+    struct tm *tlocal = localtime(&tiempo);
+    struct stat file;
+    stat(arg[2], &file);
 
-    if (arg[0]==NULL)
-        {ImprimirListaMmap(&L); return;}
-    if ((perm=arg[1])!=NULL && strlen(perm)<4) {
+    if (arg[2]==NULL)
+        {ImprimirListaMmap(L); return;}
+    if ((perm=arg[3])!=NULL && strlen(perm)<4) {
         if (strchr(perm,'r')!=NULL) protection|=PROT_READ;
         if (strchr(perm,'w')!=NULL) protection|=PROT_WRITE;
         if (strchr(perm,'x')!=NULL) protection|=PROT_EXEC;
     }
-    if ((p=MapearFichero(arg[0],protection))==NULL)
+    if ((p=MapearFichero(arg[2],protection))==NULL)
         perror ("Imposible mapear fichero");
-    else
-        printf ("fichero %s mapeado en %p\n", arg[0], p);
+    else{
+        item.cmdType = MMAP;
+        item.size = file.st_size;
+        item.dir = p; 
+        strftime(item.date, 128, "%b %d %H:%M", tlocal);
+        item.fichero.df = (int)open(arg[2], O_CREAT, O_RDONLY);
+        strcpy(item.fichero.filename,arg[2]);
+        if(insertMemListPos(L,item)){
+            printf ("fichero %s mapeado en %p\n", arg[2], p);
+        } else {
+            printf("No ha sido posible mapear el archivo\n");
+        }
+    }
 }
 
 void do_DeallocateDelkey (char *args[]){ //función para borrar una clave de un bloque de memoria compartida
@@ -725,12 +693,12 @@ void do_DeallocateDelkey (char *args[]){ //función para borrar una clave de un 
         perror ("shmctl: imposible eliminar memoria compartida\n");
 }
 
-void do_DeallocateMalloc(size_t size, tListM L) {
+void do_DeallocateMalloc(size_t size, tListM *L) {
     int aux;
-    for (aux = 0; aux <= L.lastPos; aux++) {
-        if (L.itemM[aux].cmdType == MALLOC && L.itemM[aux].size == size) {
-            free(L.itemM[aux].dir);
-            deleteItemMemList(aux, &L);
+    for (aux = 0; aux <= L->lastPos; aux++) {
+        if (L->itemM[aux].cmdType == MALLOC && L->itemM[aux].size == size) {
+            free(L->itemM[aux].dir);
+            deleteItemMemList(aux, L);
             printf("Memoria malloc de tamaño %zu liberada.\n", size);
             return;
         }
@@ -738,13 +706,13 @@ void do_DeallocateMalloc(size_t size, tListM L) {
     printf("No se encontró memoria malloc de tamaño %zu.\n", size);
 }
 
-void do_DeallocateMmap(char *file, tListM L) {
+void do_DeallocateMmap(char *file, tListM *L) {
     int aux;
-    for (aux = 0; aux <= L.lastPos; aux++) {
-        if (L.itemM[aux].cmdType == MMAP && strcmp(L.itemM[aux].fichero.filename, file) == 0) {
-            munmap(L.itemM[aux].dir, L.itemM[aux].size);
-            close(L.itemM[aux].fichero.df);  // Cierra el descriptor del archivo
-            deleteItemMemList(aux, &L);             // Elimina el nodo de la lista
+    for (aux = 0; aux <= L->lastPos; aux++) {
+        if (L->itemM[aux].cmdType == MMAP && strcmp(L->itemM[aux].fichero.filename, file) == 0) {
+            munmap(L->itemM[aux].dir, L->itemM[aux].size);
+            close(L->itemM[aux].fichero.df);  // Cierra el descriptor del archivo
+            deleteItemMemList(aux, L);             // Elimina el nodo de la lista
             printf("Memoria mapeada para el archivo %s liberada.\n", file);
             return;
         }
@@ -752,22 +720,22 @@ void do_DeallocateMmap(char *file, tListM L) {
     printf("No se encontró mapeo para el archivo %s.\n", file);
 }
 
-void deallocate_addr(void *addr, tListM L) {
+void deallocate_addr(void *addr, tListM *L) {
     int aux;
-    for (aux = 0; aux <= L.lastPos; aux++) {
+    for (aux = 0; aux <= L->lastPos; aux++) {
         // Comprobamos si el bloque de memoria coincide con la dirección proporcionada
-        if (L.itemM[aux].dir == addr) {
+        if (L->itemM[aux].dir == addr) {
             // Si es un bloque malloc, lo liberamos
-            if (L.itemM[aux].cmdType == MALLOC) {
-                free(L.itemM[aux].dir);
-                deleteItemMemList(aux, &L);  // Eliminar el bloque de la lista
+            if (L->itemM[aux].cmdType == MALLOC) {
+                free(L->itemM[aux].dir);
+                deleteItemMemList(aux, L);  // Eliminar el bloque de la lista
                 printf("Memoria malloc con dirección %p liberada.\n", addr);
             }
             // Si es un bloque mmap, lo desconectamos
-            else if (L.itemM[aux].cmdType == MMAP) {
-                munmap(L.itemM[aux].dir, L.itemM[aux].size);
-                close(L.itemM[aux].fichero.df);  // Cierra el descriptor del archivo
-                deleteItemMemList(aux, &L);             // Elimina el nodo de la lista
+            else if (L->itemM[aux].cmdType == MMAP) {
+                munmap(L->itemM[aux].dir, L->itemM[aux].size);
+                close(L->itemM[aux].fichero.df);  // Cierra el descriptor del archivo
+                deleteItemMemList(aux, L);             // Elimina el nodo de la lista
                 printf("Memoria mmap con dirección %p liberada.\n", addr);
             }
             return;

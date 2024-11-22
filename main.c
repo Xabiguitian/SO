@@ -101,7 +101,7 @@ void processCommand(char *command, tList *historial, char * trozos[],int *fin,fi
         }else if(strcmp(trozos[0],"memdump")==0){
             memdump(trozos);
         }else if(strcmp(trozos[0],"allocate")==0){
-            allocate(trozos, *mL);
+            allocate(trozos, mL);
         }else if(strcmp(trozos[0],"deallocate")==0){
             deallocate(trozos, mL);
         }else{

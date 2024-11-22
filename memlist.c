@@ -33,7 +33,7 @@ int lastMemListPos(tListM memList) {
 
 
 bool insertMemListPos(tListM* memList, dataMem m) {
-    if(memList->lastPos<MAX_LISTMEM){
+    if(memList->lastPos<MAXDATA){
         memList->lastPos++;
         memList->itemM[memList->lastPos]=m;
         return true;
