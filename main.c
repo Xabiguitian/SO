@@ -54,6 +54,7 @@ void processCommand(char *command, tList *historial, char * trozos[],int *fin,fi
             help(historial, trozos);
         }else if(strcmp(trozos[0],"quit")==0||strcmp(trozos[0],"exit")==0||strcmp(trozos[0],"bye")==0) {
             deleteListH(historial);
+            freeMemList(mL);
             deleteMemList(mL);
             EliminarFicheros(F);
             *fin=0;

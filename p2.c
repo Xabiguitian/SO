@@ -48,29 +48,37 @@ void aux_malloc(char *trozos[], tListM *mL) {
     size_t tam;
     dataMem item;
     time_t tiempo = time(0);
-    struct tm * tlocal = localtime(&tiempo);
+    struct tm *tlocal = localtime(&tiempo);
+
 
     tam = strtol(trozos[2], NULL, 10);
 
-    if(tam == 0)
+    if (tam == 0) {
         printf("No se asignan bloques de 0 bytes\n");
-    else {
+    } else {
         item.cmdType = MALLOC;
         item.size = tam;
-        item.dir = malloc(tam);
-        strftime(item.date, 128, "%b %d %H:%M", tlocal);
+        item.dir = malloc(tam);  // Asigna memoria
 
-        if(item.dir == NULL) {
+        if (item.dir == NULL) {
             perror("No se pudo conseguir la direccion.");
             return;
+        }
+
+        // Inicializa la memoria asignada a cero para evitar valores no inicializados
+        memset(item.dir, 0, tam);
+
+        strftime(item.date, 128, "%b %d %H:%M", tlocal);
+
+        // Inserta el item en la lista de memoria
+        if (insertMemListPos(mL, item)) {
+            printf("Asignados %zu bytes en %p\n", item.size, item.dir);
         } else {
-            if(insertMemListPos(mL, item)){
-                printf("Asignados %zu bytes en %p\n", item.size, item.dir);
-            }else
-                perror("Imposible hacer malloc.");
+            perror("Imposible hacer malloc.");
         }
     }
 }
+
 
 
 
@@ -202,66 +210,77 @@ void memoryGen(char *trozos[], tListM *mL) {
 
 void writefile(char *trozos[]) {
     void *direccion;
-    char sobrescribir=0;
+    char sobrescribir = 0;
     int cantB, df;
 
-    if (trozos[1]==NULL){
+    if (trozos[1] == NULL) {
         printf("Faltan parámetros.\n");
         return;
     }
 
-    if(strcmp("-o", trozos[1])!=0){
-        sobrescribir=1;
-    }else if(trozos[1][0]=='-'){
-        printf("Opcion no reconocida.\n");
-        return;
+    // Verifica si se pasó la opción -o para sobrescribir
+    if (strcmp("-o", trozos[1]) == 0) {
+        sobrescribir = 1;  // Se activa el sobrescribir
     }
 
-    if(trozos[1+sobrescribir]==NULL){
+    // El archivo debe estar especificado después de la opción (si no es -o)
+    if (trozos[1 + sobrescribir] == NULL) {
         perror("Archivo no especificado");
         return;
     }
-    if(trozos[2+sobrescribir]==NULL){
+
+    // La dirección de memoria debe estar especificada
+    if (trozos[2 + sobrescribir] == NULL) {
         perror("Dirección no especificada");
         return;
     }
-    if(trozos[3+sobrescribir]==NULL){
+
+    // La cantidad de bytes debe estar especificada
+    if (trozos[3 + sobrescribir] == NULL) {
         perror("Cantidad no especificada");
         return;
     }
-    direccion=(void *) strtoul(trozos[2+sobrescribir], NULL, 16);
-    cantB=atoi(trozos[3+sobrescribir]);
 
-    if(sobrescribir==1){
-        df= open(trozos[1+sobrescribir], O_CREAT |O_WRONLY, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
-    }else{
-        df=open(trozos[1 + sobrescribir], O_CREAT | O_EXCL | O_WRONLY, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
+    // Convertir la dirección hexadecimal a puntero
+    direccion = (void *)strtoul(trozos[2 + sobrescribir], NULL, 16);
+    cantB = atoi(trozos[3 + sobrescribir]);
+
+    // Comprobar si el archivo ya existe y no se pasa la opción -o
+    if (!sobrescribir) {
+        df = open(trozos[1 + sobrescribir], O_CREAT | O_EXCL | O_WRONLY, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
+        if (df == -1) {
+            perror("Imposible escribir fichero: File exists");
+            return;
+        }
+    } else {
+        // Si se pasa la opción -o, sobrescribir el archivo
+        df = open(trozos[1 + sobrescribir], O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
     }
 
-    if(df==-1){
+    // Comprobar si se ha abierto el archivo correctamente
+    if (df == -1) {
         perror("Error al abrir el archivo");
         return;
     }
 
-    if(write(df, direccion, cantB)==-1){
+    // Escribir los datos desde la dirección de memoria al archivo
+    if (write(df, direccion, cantB) == -1) {
         close(df);
         perror("Error al escribir el archivo");
         return;
-    }else{
-        printf("Escritos %d bytes desde %p en el archivo\n",cantB,direccion);
+    } else {
+        printf("Escritos %d bytes desde %p en el archivo\n", cantB, direccion);
         close(df);
     }
-
 }
 
-
-void writeC(char *trozos[]){
-    int  df;
-    if(trozos[1]==NULL){
+void writeC(char *trozos[]) {
+    int df;
+    if (trozos[1] == NULL) {
         perror("Descriptor de archivo no especificado");
     }
-    df=atoi(trozos[1]);
-    if(df<0){
+    df = atoi(trozos[1]);
+    if (df < 0) {
         perror("No está abierto");
         return;
     }
@@ -362,41 +381,65 @@ void LlenarMemoria (void *p, size_t cont, unsigned char byte)
 }
 
 
-void memfill(char *trozos[]){
-    void *p=NULL;
-    size_t nbytes=128;
-    unsigned char byte='A';
+void memfill(char *trozos[]) {
+    void *p = NULL;
+    size_t nbytes = 128;  // Tamaño por defecto
+    unsigned char byte = 'A';  // Byte por defecto
 
-    if(trozos[1]==NULL){
-        printf("Faltan parametros\n");
+    // Validación de parámetros
+    if (trozos[1] == NULL) {
+        printf("Faltan parámetros: dirección de memoria requerida.\n");
         return;
-    }else{
-        p=(void *)strtoul(trozos[1],NULL,16);
     }
-    if(trozos[2]!=NULL){
-        nbytes=(size_t) atoi(trozos[2]);
+
+    // Convertir la dirección proporcionada a puntero
+    p = (void *)strtoul(trozos[1], NULL, 16);
+
+    // Validar el tamaño si se proporciona
+    if (trozos[2] != NULL) {
+        nbytes = (size_t)atoi(trozos[2]);
+        if (nbytes == 0) {
+            printf("Error: tamaño inválido.\n");
+            return;
+        }
     }
-    if(trozos[3]!=NULL){
-        byte=(unsigned char) trozos[3][0];
+
+    // Leer el byte a escribir, si se proporciona
+    if (trozos[3] != NULL) {
+        byte = (unsigned char)trozos[3][0];
     }
-    LlenarMemoria(p,nbytes,byte);
+
+    // Validar permisos y accesibilidad de la región
+    if (mprotect(p, nbytes, PROT_READ | PROT_WRITE) != 0) {
+        perror("Error: no se puede escribir en la dirección especificada.");
+        return;
+    }
+
+    // Llenar la memoria con el byte especificado
+    printf("Llenando %zu bytes en %p con '%c'...\n", nbytes, p, byte);
+    LlenarMemoria(p, nbytes, byte);
 }
 
 
-//funcion auxiliar para memdump
 
-void dumpMem(const char *p, int nbytes) {
+//funcion auxiliar para memdump
+void dumpMem(const char *p, int nbytes, int tam_asignado) {
     int i, j;
     unsigned char c;
+
+    // Asegúrate de no leer más allá de la memoria asignada
+    if (nbytes > tam_asignado) {
+        nbytes = tam_asignado; // Limita la lectura al tamaño asignado
+    }
 
     for(i = 0; i < nbytes; i += 25) {
         for (j = i; j < i + 25 && j < nbytes; j++) {
             c = *(p + j);
-
-            if (c >= 32 && c <= 127)
+            if (c >= 32 && c <= 127){
                 printf("%c ", c);
-            else
+            } else {
                 printf(" ");
+            }
         }
         printf("\n");
 
@@ -411,31 +454,26 @@ void dumpMem(const char *p, int nbytes) {
 
 
 void memdump(char *trozos[]) {
-    char *p = NULL;
+    char * p;
     int nbytes = 25;
+    int tam_asignado = 10;  // Este valor debe coincidir con el tamaño real asignado
 
-    if (trozos[1] == NULL) {
-        printf("Faltan parámetros\n");
+    if(trozos[1] == NULL)
         return;
-    }
-
-    p = (char *)strtoul(trozos[1], NULL, 16);
-    if (p == NULL) {
-        perror("Dirección no válida");
-        return;
-    }
-
-    if (trozos[2] != NULL) {
-        nbytes = atoi(trozos[2]);
-        if (nbytes <= 0) {
-            printf("El número de bytes tiene que ser mayor que 0.\n");
+    else {
+        if(sscanf(trozos[1], "0x%p", &p) == 0 || p == NULL) {
+            perror("Direccion invalida.");
             return;
+        } else {
+            if(trozos[2] != NULL)
+                nbytes = atoi(trozos[2]);
+
+            printf("Volcando %d bytes desde la direccion %p\n", nbytes, p);
+            dumpMem(p, nbytes, tam_asignado);  // Pasa el tamaño asignado
         }
     }
-
-    printf("Volcando %d bytes desde la dirección %p\n", nbytes, p);
-    dumpMem(p, nbytes);
 }
+
 
 void deallocate(char *tr[], tListM *L) {
     if (tr[1] == NULL) {
@@ -517,12 +555,15 @@ void deallocateShared(char *tr[], tListM *L){
 void InsertarNodoShared(tListM *memList, void *dir, size_t tam, key_t clave) {
     // Crear un nuevo bloque de datos de tipo SHARED
     dataMem nuevoBloque;
+    time_t tiempo = time(0);
+    struct tm *tlocal = localtime(&tiempo);
 
     // Inicializar los campos del nuevo bloque
     nuevoBloque.size = tam;
     nuevoBloque.dir = dir;
     nuevoBloque.cmdType = SHARED;
     nuevoBloque.key = clave;
+    strftime(nuevoBloque.date, 128, "%b %d %H:%M", tlocal);
 
     // Insertar el nuevo bloque en la lista
     if (!insertMemListPos(memList, nuevoBloque)) {
@@ -624,21 +665,39 @@ void do_AllocateShared (char *tr[], tListM *L)
 }
 
 
-void * MapearFichero (char * fichero, int protection){ //mapea un fichero
-    int df, map=MAP_PRIVATE,modo=O_RDONLY;
+void *MapearFichero(char *fichero, int protection) {
+    int df, modo = O_RDONLY;
     struct stat s;
     void *p;
 
-    if (protection&PROT_WRITE)
-        modo=O_RDWR;
-    if (stat(fichero,&s)==-1 || (df=open(fichero, modo))==-1)
+    if (protection & PROT_WRITE)
+        modo = O_RDWR; // Abrir en modo lectura/escritura si es necesario
+
+    if (stat(fichero, &s) == -1 || (df = open(fichero, modo)) == -1) {
+        perror("Error al abrir el archivo");
         return NULL;
-    if ((p=mmap (NULL,s.st_size, protection,map,df,0))==MAP_FAILED)
+    }
+
+    if (s.st_size == 0) { // Evita mapear archivos vacíos
+        fprintf(stderr, "El archivo %s está vacío.\n", fichero);
+        close(df);
         return NULL;
-    // Guardar en la lista    InsertarNodoMmap (&L,p, s.st_size,df,fichero);
-    // Gurdas en la lista de descriptores usados df, fichero
+    }
+
+    // Usar MAP_SHARED si se permiten escrituras
+    int map_flags = (protection & PROT_WRITE) ? MAP_SHARED : MAP_PRIVATE;
+
+    p = mmap(NULL, s.st_size, protection, map_flags, df, 0);
+    close(df); // Cierra el descriptor tras mapear el archivo
+    if (p == MAP_FAILED) {
+        perror("Error al mapear el archivo");
+        return NULL;
+    }
+
     return p;
 }
+
+
 
 void ImprimirListaMmap(tListM *memList) {
     int i;
@@ -666,39 +725,48 @@ void ImprimirListaMmap(tListM *memList) {
     }
 }
 
-void do_AllocateMmap(char *arg[], tListM *L){//funcion para hacer un mapeado de un fichero
+void do_AllocateMmap(char *arg[], tListM *L) {
     char *perm;
     void *p;
-    int protection=0;
+    int protection = PROT_READ; // Por defecto, permisos de lectura
     dataMem item;
     time_t tiempo = time(0);
     struct tm *tlocal = localtime(&tiempo);
     struct stat file;
-    stat(arg[2], &file);
 
-    if (arg[2]==NULL)
-        {ImprimirListaMmap(L); return;}
-    if ((perm=arg[3])!=NULL && strlen(perm)<4) {
-        if (strchr(perm,'r')!=NULL) protection|=PROT_READ;
-        if (strchr(perm,'w')!=NULL) protection|=PROT_WRITE;
-        if (strchr(perm,'x')!=NULL) protection|=PROT_EXEC;
+    if (arg[2] == NULL) {
+        ImprimirListaMmap(L);
+        return;
     }
-    if ((p=MapearFichero(arg[2],protection))==NULL)
-        perror ("Imposible mapear fichero");
-    else{
+
+    if (stat(arg[2], &file) == -1) { // Verifica que el archivo exista
+        perror("Error al obtener información del archivo");
+        return;
+    }
+
+    if ((perm = arg[3]) != NULL && strlen(perm) < 4) {
+        if (strchr(perm, 'r') != NULL) protection |= PROT_READ;
+        if (strchr(perm, 'w') != NULL) protection |= PROT_WRITE;
+        if (strchr(perm, 'x') != NULL) protection |= PROT_EXEC;
+    }
+
+    if ((p = MapearFichero(arg[2], protection)) == NULL) {
+        perror("Imposible mapear fichero");
+    } else {
         item.cmdType = MMAP;
         item.size = file.st_size;
-        item.dir = p; 
+        item.dir = p;
         strftime(item.date, 128, "%b %d %H:%M", tlocal);
-        item.fichero.df = (int)open(arg[2], O_CREAT, O_RDONLY);
-        strcpy(item.fichero.filename,arg[2]);
-        if(insertMemListPos(L,item)){
-            printf ("fichero %s mapeado en %p\n", arg[2], p);
+        item.fichero.df = open(arg[2], O_RDONLY); // Guardar el descriptor del archivo
+        strcpy(item.fichero.filename, arg[2]);
+        if (insertMemListPos(L, item)) {
+            printf("fichero %s mapeado en %p\n", arg[2], p);
         } else {
             printf("No ha sido posible mapear el archivo\n");
         }
     }
 }
+
 
 void do_DeallocateDelkey (char *args[]){ //función para borrar una clave de un bloque de memoria compartida
     key_t clave;
