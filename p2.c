@@ -90,7 +90,7 @@ void allocate(char *tr[], tListM *L) {
     }
     // Caso de memoria compartida -creada
     else if (strcmp(tr[1], "-createshared") == 0 && tr[2] != NULL && tr[3] != NULL) {
-        do_AllocateCreateshared(tr + 2, *L);
+        do_AllocateCreateshared(tr + 2, L);
     }
     // Caso de memoria compartida
     else if (strcmp(tr[1], "-shared") == 0 && tr[2] != NULL) {
@@ -99,7 +99,7 @@ void allocate(char *tr[], tListM *L) {
             printf("Clave inválida para memoria compartida.\n");
             return;
         }
-        do_AllocateShared(tr + 2, L);  // Llama a la función correspondiente
+        do_AllocateShared(tr, L);  // Llama a la función correspondiente
     }
     else {
         printf("Comando no reconocido o parámetros incorrectos.\n");
@@ -443,22 +443,6 @@ void deallocate(char *tr[], tListM *L) {
         return;
     }
 
-    if (strcmp(tr[1], "-addr") == 0) {
-        // Asegurarse de que la dirección se pasa correctamente en formato hexadecimal
-        void *addr = (void *)strtoull(tr[2], NULL, 16);  // Convertimos la dirección hexadecimal (ejemplo: 0x12345)
-
-        if (addr == NULL) {
-            printf("Dirección inválida para deallocar.\n");
-            return;
-        }
-
-        printf("Intentando liberar la dirección: %p\n", addr);
-
-        // Llamamos a la función para deallocar la dirección específica
-        deallocate_addr(addr, L);
-        return;
-    }
-
     if (strcmp(tr[1], "-malloc") == 0 && tr[2] != NULL) {
         size_t size = (size_t)strtoul(tr[2], NULL, 10);
         if (size == 0) {
@@ -472,7 +456,7 @@ void deallocate(char *tr[], tListM *L) {
         char *file = tr[2];  // El nombre del archivo está en tr[2]
         do_DeallocateMmap(file, L);  // Llama a la función para liberar el mapeo del archivo
     }
-    else if (strcmp(tr[1], "-shared") == 0 && tr[2] != NULL) {
+    else if (strcmp(tr[1], "-delkey") == 0 && tr[2] != NULL) {
         char *key_str = tr[2];
         key_t clave = (key_t)strtoul(key_str, NULL, 10);  // Convierte la clave de memoria compartida
         if (clave == IPC_PRIVATE) {
@@ -481,11 +465,51 @@ void deallocate(char *tr[], tListM *L) {
         }
 
         // Llamar a la función que elimina la memoria compartida
-        do_DeallocateDelkey(tr+2);
+        do_DeallocateDelkey(tr);
+    }else if (strcmp(tr[1], "-shared") == 0 && tr[2] != NULL) {
+        deallocateShared(tr, L);
+    }else {
+        // Asegurarse de que la dirección se pasa correctamente en formato hexadecimal
+        void *addr = (void *)strtoull(tr[1], NULL, 16);  // Convertimos la dirección hexadecimal (ejemplo: 0x12345)
+
+        if (addr == NULL) {
+            printf("Dirección inválida para deallocar.\n");
+            return;
+        }
+
+        printf("Intentando liberar la dirección: %p\n", addr);
+
+        // Llamamos a la función para deallocar la dirección específica
+        deallocate_addr(addr, L);
+        return;
     }
-    else {
-        printf("Comando no reconocido o parámetros incorrectos.\n");
+}
+
+void deallocateShared(char *tr[], tListM *L){
+    char *key_str = tr[2];
+    key_t clave = (key_t)strtoul(key_str, NULL, 10);  // Convierte la clave de memoria compartida
+    if (clave == 0 || clave == IPC_PRIVATE) {
+        printf("Clave inválida para memoria compartida.\n");
+        return;
     }
+
+    // Recorremos la lista de bloques de memoria para encontrar el bloque correspondiente
+    int aux;
+    for (aux = 0; aux <= L->lastPos; aux++) {
+        if (L->itemM[aux].cmdType == SHARED && L->itemM[aux].key == clave) {
+            // Intentar desasociar el bloque de memoria compartida
+            if (shmdt(L->itemM[aux].dir) == -1) {
+                perror("Error al desasociar el bloque de memoria compartida");
+                return;
+            }
+            // Eliminar el bloque de la lista de memoria
+            deleteItemMemList(aux, L);
+            printf("Bloque de memoria compartida con clave %d liberado.\n", clave);
+            return;
+        }
+    }
+
+    printf("No se encontró ningún bloque de memoria compartida con clave %d.\n", clave);
 }
 
 
@@ -507,7 +531,7 @@ void InsertarNodoShared(tListM *memList, void *dir, size_t tam, key_t clave) {
 }
 
 
-void *ObtenerMemoriaShmget(key_t clave, size_t tam, tListM L) {
+void *ObtenerMemoriaShmget(key_t clave, size_t tam, tListM *L) {
     void *p;
     int aux, id, flags = 0777;
     struct shmid_ds s;
@@ -528,17 +552,17 @@ void *ObtenerMemoriaShmget(key_t clave, size_t tam, tListM L) {
         return NULL;
     }
     shmctl(id, IPC_STAT, &s);
-    InsertarNodoShared(&L, p, s.shm_segsz, clave);
+    InsertarNodoShared(L, p, s.shm_segsz, clave);
     return p;
 }
 
-void do_AllocateCreateshared (char *tr[], tListM L) { //Crea un bloque de memoria compartida
+void do_AllocateCreateshared (char *tr[], tListM *L) { //Crea un bloque de memoria compartida
     key_t cl;
     size_t tam;
     void *p;
 
     if (tr[0]==NULL || tr[1]==NULL) {
-        ImprimirListaShared(&L);
+        ImprimirListaShared(L);
         return;
     }
 
@@ -591,9 +615,9 @@ void do_AllocateShared (char *tr[], tListM *L)
         return;
     }
 
-    cl=(key_t)  strtoul(tr[0],NULL,10);
+    cl=(key_t)  strtoul(tr[2],NULL,10);
 
-    if ((p=ObtenerMemoriaShmget(cl,0,*L))!=NULL)
+    if ((p=ObtenerMemoriaShmget(cl,0,L))!=NULL)
         printf ("Asignada memoria compartida de clave %lu en %p\n",(unsigned long) cl, p);
     else
         printf ("Imposible asignar memoria compartida clave %lu:%s\n",(unsigned long) cl,strerror(errno));
@@ -679,7 +703,7 @@ void do_AllocateMmap(char *arg[], tListM *L){//funcion para hacer un mapeado de 
 void do_DeallocateDelkey (char *args[]){ //función para borrar una clave de un bloque de memoria compartida
     key_t clave;
     int id;
-    char *key=args[0];
+    char *key=args[2];
 
     if (key==NULL || (clave=(key_t) strtoul(key,NULL,10))==IPC_PRIVATE){
         printf ("      delkey necesita clave_valida\n");
