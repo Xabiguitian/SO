@@ -23,6 +23,7 @@ char * username(uid_t uid) {
         return ("?????");
     return p->pw_name;
 }
+
 void getUid(){
   uid_t real = getuid(), efectiva = geteuid();
 
@@ -31,19 +32,19 @@ void getUid(){
 }
 
 
-void setUid(char *trozos[], char *id) {
+void cmd_setUid(char *trozos[]) {
   uid_t uid;
 
 
-  if (strcmp(trozos[2], "-l") == 0) {
+  if (strcmp(trozos[1], "-l") == 0) {
 
-    if ((uid = userUID(id)) == (uid_t)-1) {
-      printf("Usuario no existente: %s\n", id);
+    if ((uid = userUID(trozos[2])) == (uid_t)-1) {
+      printf("Usuario no existente: %s\n", trozos[2]);
       return;
     }
   } else {
 
-    uid = (uid_t) atoi(id);
+    uid = (uid_t) atoi(trozos[1]);
   }
 
   if (setuid(uid) == -1) {
@@ -58,7 +59,7 @@ void setUid(char *trozos[], char *id) {
 }*/
 
 
-void Cfork(char * trozos[], tListP * ListProc){
+/*void Cfork(char * trozos[], tListP * ListProc){
   pid_t pid;
   if(pid!=-1)
     waitpid(pid,NULL,0);
@@ -67,3 +68,4 @@ void Cfork(char * trozos[], tListP * ListProc){
     printf("Ejecutando processo %d \n", getpid());
 }
 }
+*/

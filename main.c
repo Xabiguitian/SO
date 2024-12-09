@@ -107,9 +107,9 @@ void processCommand(char *command, tList *historial, char * trozos[],int *fin,fi
         }else if(strcmp(trozos[0],"deallocate")==0){
             deallocate(trozos, mL);
         }else if(strcmp(trozos[0],"getuid")==0){
-            getuid();
+            getUid();
         }else if(strcmp(trozos[0],"setuid")==0){
-            //setuid(trozos, trozos[2]);
+            cmd_setUid(trozos);
         }else{
             printf("No se reconoce el comando.\n");
         }
