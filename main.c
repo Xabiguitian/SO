@@ -4,6 +4,7 @@
 #include "file.h"
 #include "historial.h"
 #include "p2.h"
+#include "p3.h"
 
 
 void imprimirPrompt(){
@@ -105,6 +106,10 @@ void processCommand(char *command, tList *historial, char * trozos[],int *fin,fi
             allocate(trozos, mL);
         }else if(strcmp(trozos[0],"deallocate")==0){
             deallocate(trozos, mL);
+        }else if(strcmp(trozos[0],"getuid")==0){
+            getuid();
+        }else if(strcmp(trozos[0],"setuid")==0){
+            //setuid(trozos, trozos[2]);
         }else{
             printf("No se reconoce el comando.\n");
         }
