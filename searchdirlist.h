@@ -18,8 +18,7 @@
 
 #define MAXDIRS 100  // Número máximo de directorios en la lista
 #define MAXPATH 256  // Tamaño máximo de las rutas
-#define MAXNAME 4096
-
+#define MAX 4096
 
 // Estructura para la lista de búsqueda
 typedef struct {
@@ -27,6 +26,7 @@ typedef struct {
     int lastPosSearch;                  // Número de directorios en la lista
 } tSearchList;
 tSearchList globalSearchList;
+
 void createEmptySearchList(tSearchList *searchList);
 bool isEmptySearchList(tSearchList searchList);
 int firstSearchList(tSearchList searchList);

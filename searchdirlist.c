@@ -5,27 +5,26 @@
 #include "searchdirlist.h"
 
 void createEmptySearchList(tSearchList *searchList){
-
-  searchList->lastPosSearch =0;
+    searchList->lastPosSearch =0;
 }
+
 bool isEmptySearchList(tSearchList searchList){
-  return (searchList.lastPosSearch == 0);
-
+    return (searchList.lastPosSearch == 0);
 }
+
 int firstSearchList(tSearchList searchList){
-  return 0;
-
+    return 0;
 }
+
 int lastSearchList(tSearchList searchList){
-  return searchList.lastPosSearch;
-
+    return searchList.lastPosSearch;
 }
-int nextSearchList(tSearchList searchList, int pSearch){
-  if(pSearch==searchList.lastPosSearch)
-    return -1;
-  else
-    return ++pSearch;
 
+int nextSearchList(tSearchList searchList, int pSearch){
+    if(pSearch==searchList.lastPosSearch)
+        return -1;
+    else
+        return ++pSearch;
 }
 
 bool insertSearchList(tSearchList *searchList, char *dir) {
@@ -78,7 +77,7 @@ void updateSearchList(tSearchList *searchList, char *dir) {
 
 // Función para encontrar el directorio de un ejecutable
 char *Ejecutable(char *s) {
-    static char path[MAXNAME];
+    static char path[MAX];
     struct stat st;
 
     if (s == NULL)
@@ -95,9 +94,9 @@ char *Ejecutable(char *s) {
         if (dir == NULL)
             continue;
 
-        strncpy(path, dir, MAXNAME - 1);
-        strncat(path, "/", MAXNAME - strlen(path) - 1);
-        strncat(path, s, MAXNAME - strlen(path) - 1);
+        strncpy(path, dir, MAX - 1);
+        strncat(path, "/", MAX - strlen(path) - 1);
+        strncat(path, s, MAX - strlen(path) - 1);
 
         if (lstat(path, &st) != -1)
             return path;
