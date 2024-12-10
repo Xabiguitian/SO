@@ -54,9 +54,7 @@ void cmd_setUid(char *trozos[]) {
   }
 }
 
-/*void environ(char *trozos[], char * arg3[], char *envi[]){
 
-}*/
 
 
 
@@ -70,6 +68,25 @@ void Cmd_fork (char * tr[], tListProc * ListProc) {
     else if (pid!=-1)
         waitpid (pid,NULL,0);
 }
+void Cenviron(char *trozos[], char * arg3[], char *env[]){
+
+  if (trozos[1] == NULL) {
+    printVar(arg3, "main arg3");
+  }else if (! strcmp(trozos[1],"-addr")) {
+    printf("environ: %p (almacenado en %p)\n", env, &env);
+    printf("main arg3: %p (almacenado en %p)\n", arg3, &arg3);
+  }else if (! strcmp(trozos[1],"-environ")) {
+    printVar(env, "environ");
+
+
+  }else
+    printf("Parámetros incorrectos\n");
+}
+
+
+
+
+
 
 // Codigo dado por los profesores:
 int BuscarVariable (char * var, char *e[])  /*busca una variable en el entorno que se le pasa como parÃ¡metro*/
@@ -151,6 +168,7 @@ void changevar(char *trozos[], char * arg3[], char * env[]) {
 int cont;
   char *var;
 
+  for(cont = 0; trozos[cont] != NULL; cont++);
   if (cont==4) {
     var=malloc(strlen(trozos[2])+strlen(trozos[3])+4);
     strcpy(var, trozos[2]);
@@ -184,7 +202,7 @@ int cont;
     printf("Uso: changevar [-a|-e|-p] var valor\n");
 }
 
-/*void showvar(char * trozos[], char *arg3[], char * env[]) {
+void showvar(char * trozos[], char *arg3[], char * env[]) {
 int i , j;
 char *valor;
   if (trozos[1]==NULL)
@@ -193,11 +211,11 @@ char *valor;
     valor=getenv(trozos[1]);
     if (valor==NULL)
       return;
-    if (i=BuscarVariable(trozos[1],arg3)==-1) {
+    if ((i=BuscarVariable(trozos[1],arg3))==-1) {
       perror("Error al obtener main arg3\n");
       return;
     }
-    if (j=BuscarVariable(trozos[1],environ)==-1) {
+    if ((j=BuscarVariable(trozos[1],environ))==-1) {
       perror("Error al obtener el environ\n");
       return;
     }
@@ -206,4 +224,51 @@ char *valor;
     printf("Con environ %s(%p) @%p\n", environ[j], environ[j], &environ[j]);
     printf("Con getenv %s(%p)\n", valor, &valor);
   }
+}
+
+void execCmd(char *tr[], char *input, tList *hist, tListM *M, tListProc *ListProc, char *envp[]) {
+  if (tr[1] == NULL) {
+    printf("Uso: exec VAR1 VAR2 ..prog args....[@pri]\n");
+  } else {
+    int cnt = 0;
+    char *tr2[MAXTROZOS];
+    int n = TrocearCadena(input, tr2);
+
+    while (tr[cnt + 1] != NULL)
+      cnt++;
+    if (execvp(tr[1], tr + 1) == -1) {
+      perror("Imposible ejecutar el programa");
+    }
+  }
+}
+
+
+
+
+void execpri(char *tr[], char *input, tList *hist, tListM *M, tListProc *ListProc, char *envp[]) {
+  if (tr[1] == NULL) {
+    printf("Uso: execpri prio progspec\n");
+  } else {
+    int cnt = 0;
+    char *tr2[MAXTROZOS];
+    int n = TrocearCadena(input, tr2);
+
+    while (tr[cnt + 1] != NULL)
+      cnt++;
+
+    if (strstr(tr[n - 1], "@") != NULL) {
+      if (setpriority(PRIO_PROCESS, getpid(), atoi(tr[cnt] + 1)) == -1) {
+        perror("Error al cambiar la prioridad");
+        return;
+      }
+      tr2[n - 1] = NULL;
+      execCmd(tr, input, hist, M, ListProc, envp);
+    } else {
+      execCmd(tr, input, hist, M, ListProc, envp);
+    }
+  }
+}
+
+/*void fg(char *trozos[], char *progspec) {
+
 }*/
