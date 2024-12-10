@@ -3,7 +3,7 @@
 //
 #include "p3.h"
 #include "proclist.h"
-#include "searchlist.h"
+#include "searchdirlist.h"
 
 //función auxiliar para obtener el UID
 uid_t userUID(char *login) {
