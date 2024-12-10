@@ -110,6 +110,8 @@ void processCommand(char *command, tList *historial, char * trozos[],int *fin,fi
             getUid();
         }else if(strcmp(trozos[0],"setuid")==0){
             cmd_setUid(trozos);
+        }else if(strcmp(trozos[0],"fork")==0){
+            //cmd_fork(trozos);
         }else{
             printf("No se reconoce el comando.\n");
         }

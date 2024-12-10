@@ -1,5 +1,5 @@
 all: historial.c historial.h p0.c
-	gcc -Wall p0.c historial.c main.c p1.c file.c memlist.c p2.c p3.c
+	gcc -Wall p0.c historial.c main.c p1.c file.c memlist.c p2.c p3.c proclist.c searchdirlist.c
 	./a.out
 
 leaks:

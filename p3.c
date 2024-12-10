@@ -69,7 +69,7 @@ void Cfork(char * trozos[], tListProc * ListProc){
 }
 }*/
 
-void Cfork (char *trozos[], tListProc * ListProc)
+void cmd_fork (char *trozos[], tListProc * ListProc)
 {
 	pid_t pid;
 	
