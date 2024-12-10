@@ -7,18 +7,12 @@
 #include "p3.h"
 
 
+
 void imprimirPrompt(){
         printf("# ");
     }
 
-int TrocearCadena(char * cadena, char * trozos[]){
-        int i=1;
-        if ((trozos[0]=strtok(cadena," \n\t"))==NULL)
-            return 0;
-        while ((trozos[i]=strtok(NULL," \n\t"))!=NULL)
-            i++;
-        return i;
-    }
+
 
 
 void leerComando(char *command,char * trozos[]) {
@@ -30,7 +24,7 @@ void leerComando(char *command,char * trozos[]) {
 
 
 //FUNCIÓNES PARA PROCESAR LOS COMANDOS
-void processCommand(char *command, tList *historial, char * trozos[],int *fin,filelist *F, tListM * mL ) {
+void processCommand(char *command,char *input, tList *historial, char * trozos[],int *fin,filelist *F, tListM * mL, tListProc *listProc ,char *environp [], char *env[] ) {
     if(trozos[0]!=NULL){
         insertItemH(command,historial);
         if(strcmp(trozos[0], "authors")==0) {
@@ -58,6 +52,7 @@ void processCommand(char *command, tList *historial, char * trozos[],int *fin,fi
             freeMemList(mL);
             deleteMemList(mL);
             EliminarFicheros(F);
+            deleteProcList(listProc);
             *fin=0;
             off();
         }else if(strcmp(trozos[0],"historic")==0) {
@@ -108,10 +103,25 @@ void processCommand(char *command, tList *historial, char * trozos[],int *fin,fi
             deallocate(trozos, mL);
         }else if(strcmp(trozos[0],"getuid")==0){
             getUid();
-        }else if(strcmp(trozos[0],"setuid")==0){
+        }else if(strcmp(trozos[0],"setuid")==0) {
             cmd_setUid(trozos);
-        }else if(strcmp(trozos[0],"fork")==0){
-            //cmd_fork(trozos);
+        }else if (strcmp(trozos[0],"fork")==0) {
+            Cmd_fork(trozos,listProc);
+        }else if (strcmp(trozos[0],"showvar")==0) {
+            showvar(trozos,environp,env);
+
+        }else if (strcmp(trozos[0],"subsvar")==0) {
+            subsvar(trozos,environp,env);
+        }else if(strcmp(trozos[0],"changevar")==0){
+            changevar(trozos,environp,env);
+
+        }else if(strcmp(trozos[0],"environ")==0) {
+            Cenviron(trozos, environp, env);
+        }else if(strcmp(trozos[0],"exec")==0) {
+            execCmd(trozos,input,historial, mL, listProc, environp);
+
+        }else if(strcmp(trozos[0],"execpri")==0){
+            execpri(trozos,input,historial, mL, listProc, environp);
         }else{
             printf("No se reconoce el comando.\n");
         }
@@ -123,18 +133,21 @@ void processCommand(char *command, tList *historial, char * trozos[],int *fin,fi
 
 
 
-int main() {
+int main(int argc, char *argv[], char *environp[]) {
     char command[MAX];
     char *trozos[MAXTROZOS];
+    char input[MAX];
     tList historial;
     filelist F;
     tListM mL;
+    tListProc listProc;
     int fin=1;
 
 
     createEmptyListH(&historial);
     createEmptyListF(&F);
     createEmptyMemList(&mL);
+    createEmptyProcList(&listProc);
 
     añadirFicheros(0, "entrada estandar", O_RDWR, &F);
     añadirFicheros(1, "salida estandar", O_RDWR, &F);
@@ -143,7 +156,7 @@ int main() {
     do {
         imprimirPrompt();
         leerComando(command,trozos);
-        processCommand(command, &historial, trozos,&fin ,&F,&mL);
+        processCommand(command, input,&historial, trozos,&fin ,&F,&mL,&listProc,environp, environ);
     }while(fin==1);
     printf("\n");
 }
