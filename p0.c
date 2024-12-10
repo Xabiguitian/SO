@@ -9,8 +9,18 @@
 
 
 //FUNCIONES DE LOS COMANDOS
+//Como está implementada en el main la ponemos otra vez aqui apra que el programa la reconozca
+int TrocearCadena(char * cadena, char * trozos[]){
+    int i=1;
+    if ((trozos[0]=strtok(cadena," \n\t"))==NULL)
+        return 0;
+    while ((trozos[i]=strtok(NULL," \n\t"))!=NULL)
+        i++;
+    return i;
+}
 
 //Imprime el nombre y los logins de los autores del núcleo
+
 void authors(char *trozos[]){
     if(trozos[1]==NULL) {
         printf("Ángela García Sánchez (angela.gsanchez@udc.es)\nXabier Guitián López (x.guitian@udc.es)\n");
