@@ -36,6 +36,7 @@ void off();
 void cmdhistoric(char *trozos[], tList * historial);
 void Cmd_close (char *tr[],filelist *F);
 void help(tList *historial, char * trozos[]);
+int TrocearCadena(char * cadena, char * trozos[]);
 
 
 
