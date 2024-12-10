@@ -34,6 +34,8 @@
 //COMANDOS DE LA PRÁCTICA 3
 void getUid();
 void cmd_setUid(char *trozos[]);
-void cmd_fork(char * trozos[], tListProc * ListProc);
-
+void Cfork(char * trozos[], tListProc * ListProc);
+void subsvar(char *trozos[], char *arg3[], char *env[]);
+void showvar(char * trozos[], char *arg3[], char * env[]);
+//void Cmd_changevar(char *tr[], char * arg3[], char * env[]);
 #endif //P3_H
