@@ -59,7 +59,7 @@ void cmd_setUid(char *trozos[]) {
 }*/
 
 
-/*void Cfork(char * trozos[], tListP * ListProc){
+void Cfork(char * trozos[], tListProc * ListProc){
   pid_t pid;
   if(pid!=-1)
     waitpid(pid,NULL,0);
@@ -68,4 +68,3 @@ void cmd_setUid(char *trozos[]) {
     printf("Ejecutando processo %d \n", getpid());
 }
 }
-*/
