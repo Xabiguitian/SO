@@ -122,6 +122,14 @@ void processCommand(char *command,char *input, tList *historial, char * trozos[]
 
         }else if(strcmp(trozos[0],"execpri")==0){
             execpri(trozos,input,historial, mL, listProc, environp);
+        }else if(strcmp(trozos[0],"back")==0){
+            back(trozos, listProc);
+        }else if(strcmp(trozos[0],"listjobs")==0){
+            listjobs(listProc);
+        }else if(strcmp(trozos[0],"deljobs")==0){
+            deljobs(trozos, listProc);
+        }else if(strcmp(trozos[0],"search")==0){
+            //search(trozos, searchList);
         }else{
             printf("No se reconoce el comando.\n");
         }

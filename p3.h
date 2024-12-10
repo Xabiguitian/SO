@@ -45,4 +45,8 @@ void printVar(char *env[], char * name);
 void Cenviron(char *trozos[], char * arg3[], char *env[]);
 void execCmd(char *tr[], char *input, tList *hist, tListM *M, tListProc *ListProc, char *environp[]);
 void execpri(char *tr[], char *input, tList *hist, tListM *M, tListProc *ListProc, char *environp[]);
+void back(char *trozos[], tListProc *listProc);
+void listjobs(tListProc *listProc);
+void deljobs(char *trozos[], tListProc *listProc);
+
 #endif //P3_H

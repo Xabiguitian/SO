@@ -272,3 +272,100 @@ void execpri(char *tr[], char *input, tList *hist, tListM *M, tListProc *ListPro
 /*void fg(char *trozos[], char *progspec) {
 
 }*/
+
+void back(char *trozos[], tListProc *listProc) {
+  pid_t pid;
+  time_t currentTime;
+  struct tm *localTime;
+  char timeStr[128];
+
+  if (trozos[1] == NULL) {
+    printf("Uso: back comando args\n");
+    return;
+  }
+
+  if ((pid = fork()) == 0) {
+    // Proceso hijo: ejecuta el comando
+    if (execvp(trozos[1], &trozos[1]) == -1) {
+      perror("Error ejecutando comando en background");
+      exit(EXIT_FAILURE);
+    }
+  } else if (pid > 0) {
+    // Proceso padre: guarda el proceso en la lista
+    dataProc newProc;
+    newProc.pid = pid;
+    newProc.estado = ACTIVE;
+    newProc.user = strdup(username(getuid()));
+    newProc.cmd = strdup(trozos[1]);
+
+    // Obtén la hora actual
+    time(&currentTime);
+    localTime = localtime(&currentTime);
+    strftime(timeStr, sizeof(timeStr), "%Y-%m-%d %H:%M:%S", localTime);
+    newProc.date = strdup(timeStr);
+
+    if (!insertItemProcList(newProc, listProc)) {
+      printf("Error: No se pudo añadir el proceso a la lista\n");
+    } else {
+      printf("Proceso %d añadido en background\n", pid);
+    }
+  } else {
+    perror("Error al crear proceso en background");
+  }
+}
+
+void listjobs(tListProc *listProc) {
+  int i;
+  dataProc proc;
+
+  if (isEmptyProcList(*listProc)) {
+    printf("No hay procesos en background.\n");
+    return;
+  }
+
+  for (i = firstProcList(*listProc); i <= lastProcList(*listProc); i++) {
+    proc = getItemProcList(i, *listProc);
+    printf("PID: %d\tEstado: %s\tUsuario: %s\tComando: %s\tFecha: %s\n",
+          proc.pid,
+          proc.estado == ACTIVE   ? "ACTIVO" :
+          proc.estado == FINISHED ? "FINALIZADO" :
+          proc.estado == STOPPED  ? "DETENIDO" :
+          proc.estado == SIGNALED ? "SEÑALADO" : "DESCONOCIDO",
+          proc.user, proc.cmd, proc.date);
+  }
+}
+
+void deljobs(char *trozos[], tListProc *listProc) {
+  int i;
+  dataProc proc;
+
+  if (trozos[1] == NULL) {
+    printf("Uso: deljobs -term|-sig\n");
+    return;
+  }
+
+  for (i = firstProcList(*listProc); i <= lastProcList(*listProc); i++) {
+    proc = getItemProcList(i, *listProc);
+
+    if (!strcmp(trozos[1], "-term")) {
+      if (kill(proc.pid, SIGTERM) == 0) {
+        printf("Proceso %d terminado correctamente.\n", proc.pid);
+        deleteItemProcList(i, listProc);
+        i--; // Ajustar índice debido a la eliminación
+      } else {
+        perror("Error al terminar proceso");
+      }
+    } else if (!strcmp(trozos[1], "-sig")) {
+      if (kill(proc.pid, SIGKILL) == 0) {
+        printf("Proceso %d eliminado correctamente.\n", proc.pid);
+        deleteItemProcList(i, listProc);
+        i--;
+      } else {
+        perror("Error al eliminar proceso");
+      }
+    } else {
+      printf("Parámetro no reconocido.\n");
+      return;
+    }
+  }
+}
