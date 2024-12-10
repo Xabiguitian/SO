@@ -30,12 +30,19 @@
 
 
 
+extern char ** environ;
+
+
 
 //COMANDOS DE LA PRÁCTICA 3
 void getUid();
 void cmd_setUid(char *trozos[]);
-void Cfork(char * trozos[], tListProc * ListProc);
+void Cmd_fork (char * tr[], tListProc * ListProc);
 void subsvar(char *trozos[], char *arg3[], char *env[]);
 void showvar(char * trozos[], char *arg3[], char * env[]);
-//void Cmd_changevar(char *tr[], char * arg3[], char * env[]);
+void changevar(char *tr[], char * arg3[], char * env[]);
+void printVar(char *env[], char * name);
+void Cenviron(char *trozos[], char * arg3[], char *env[]);
+void execCmd(char *tr[], char *input, tList *hist, tListM *M, tListProc *ListProc, char *environp[]);
+void execpri(char *tr[], char *input, tList *hist, tListM *M, tListProc *ListProc, char *environp[]);
 #endif //P3_H
