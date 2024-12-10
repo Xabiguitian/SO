@@ -2,8 +2,8 @@
 // Created by angela on 3/12/24.
 //
 #include "p3.h"
-
-
+#include "proclist.h"
+#include "searchlist.h"
 
 //función auxiliar para obtener el UID
 uid_t userUID(char *login) {
@@ -58,7 +58,7 @@ void cmd_setUid(char *trozos[]) {
 
 }*/
 
-
+/*
 void Cfork(char * trozos[], tListProc * ListProc){
   pid_t pid;
   if(pid!=-1)
@@ -67,4 +67,16 @@ void Cfork(char * trozos[], tListProc * ListProc){
     deleteProcList(ListProc);
     printf("Ejecutando processo %d \n", getpid());
 }
+}*/
+
+void Cfork (char *trozos[], tListProc * ListProc)
+{
+	pid_t pid;
+	
+	if ((pid=fork())==0){
+    deleteProcList(ListProc);
+		printf ("ejecutando proceso %d\n", getpid());
+	}
+	else if (pid!=-1)
+		waitpid (pid,NULL,0);
 }
