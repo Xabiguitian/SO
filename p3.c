@@ -344,27 +344,76 @@ void backpri(char *trozos[], tListProc *listProc) {
     }
 }
 
-void listjobs(tListProc *listProc) {
-    int i;
-    dataProc proc;
+void listjobs (char *trozos[], tListProc *list_proc){
+	if(trozos[1]==NULL){
+    int pos;
+    dataProc item;
+    if(isEmptyProcList(*list_proc)){
+      return;
+    } else {
+      for(pos = firstProcList(*list_proc); pos <= lastProcList(*list_proc); pos++ ){
+        item = getItemProcList(pos, *list_proc);
+        item = actualizar_estado(item, 1);
+        updateItemProcList(item, pos, list_proc);
 
-    for (i = firstProcList(*listProc); i <= lastProcList(*listProc); i++) {
-        proc = getItemProcList(i, *listProc);
-        int priority = getpriority(PRIO_PROCESS, proc.pid);
-
-        printf("%6d %10s p=%-2d %s %-10s (%d) %s\n",
-               proc.pid,                                     // PID
-               proc.user,                                    // Usuario
-               priority == -1 ? -1 : priority,              // Prioridad
-               proc.date,                                   // Fecha/Hora
-               proc.estado == ACTIVE   ? "ACTIVO" :
-               proc.estado == FINISHED ? "TERMINADO" :
-               proc.estado == STOPPED  ? "DETENIDO" :
-               proc.estado == SIGNALED ? "SEÑALADO" : "DESCONOCIDO", // Estado
-               proc.end,                                    // ExitCode
-               proc.cmd);                                   // Comando
+        char *estado;
+        if(item.estado == STOPPED){
+          estado = "STOPPED";
+          printf("%d\t%s p=%d %s %s (%d) %s\n", item.pid, item.user, getpriority(PRIO_PROCESS, item.pid), item.date, estado, item.end, item.cmd);
+        }
+        if(item.estado == ACTIVE){
+          estado = "ACTIVE";
+          printf("%d\t%s p=%d %s %s (%d) %s\n", item.pid, item.user, getpriority(PRIO_PROCESS, item.pid), item.date, estado, item.end, item.cmd);
+        }
+        if(item.estado == SIGNALED){
+          estado = "SIGNALED";
+          printf("%d\t%s p=%d %s %s (%d) %s\n", item.pid, item.user, getpriority(PRIO_PROCESS, item.pid), item.date, estado, item.end, item.cmd);
+        }
+        if(item.estado == FINISHED){
+          estado = "FINISHED";
+          printf("%d\t%s p=%d %s %s (%d) %s\n", item.pid, item.user, getpriority(PRIO_PROCESS, item.pid), item.date, estado, item.end, item.cmd);
+        }
+        if(item.estado == UNKNOWN){
+          estado = "UNKOWN";
+        }
+      }
     }
+	}
+	else {
+		printf("Error: Número de argumentos inválido\n");
+	}
 }
+
+dataProc actualizar_estado(dataProc item, int opciones){
+	int estado;
+	if(opciones != 0){
+		opciones = WNOHANG | WUNTRACED | WCONTINUED; 
+	}
+
+	if(waitpid(item.pid, &estado, opciones)==item.pid){
+		if(WIFEXITED(estado)){
+			item.state = FINISHED;
+			item.estado = FINISHED;
+			item.end = WEXITSTATUS(estado);
+		} else if (WIFCONTINUED(estado)){
+			item.state = ACTIVE;
+			item.estado = ACTIVE;
+		} else if (WIFSTOPPED(estado)){
+			item.state = STOPPED;
+			item.estado = STOPPED;
+			item.end = WTERMSIG(estado);
+		} else if (WIFSIGNALED(estado)){
+			item.state = SIGNALED;
+			item.estado = SIGNALED;
+			item.end = WTERMSIG(estado);
+		} else {
+			item.state = UNKNOWN;
+			item.estado = UNKNOWN;
+		}
+	}
+	return item;
+}
+
 
 void deljobs(char *trozos[], tListProc *listProc) {
     int i;
