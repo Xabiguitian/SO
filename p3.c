@@ -268,35 +268,23 @@ void execpri(char *tr[], char *input, tList *hist, tListM *M, tListProc *ListPro
   }
 }
 
-/*void fg(char *trozos[], char *progspec) {
-
-}*/
-
 void back(char *trozos[], tListProc *listProc) {
     pid_t pid;
-    if (trozos[1] == NULL) {
-        printf("Uso: back comando args\n");
-        return;
-    }
 
     if ((pid = fork()) == 0) {
-        // Proceso hijo
         char *path = Ejecutable(trozos[1]);
-        
-        // Opcional: redirigir salida estándar y de error a un archivo
-        int fd = open("/dev/null", O_WRONLY); // Redirige la salida a /dev/null
+        int fd = open("/dev/null", O_WRONLY);
         if (fd != -1) {
-            dup2(fd, STDOUT_FILENO); // Redirige salida estándar
-            dup2(fd, STDERR_FILENO); // Redirige salida de error
+            dup2(fd, STDOUT_FILENO);
+            dup2(fd, STDERR_FILENO);
             close(fd);
         }
 
         if (execvp(path, &trozos[1]) == -1) {
-            perror("Error ejecutando comando en background");
+            perror("No ejecutado");
             exit(EXIT_FAILURE);
         }
     } else if (pid > 0) {
-        // Proceso padre
         dataProc newProc;
         newProc.pid = pid;
         newProc.estado = ACTIVE;
@@ -316,36 +304,71 @@ void back(char *trozos[], tListProc *listProc) {
     }
 }
 
+void backpri(char *trozos[], tListProc *listProc) {
+    if (trozos[1] == NULL || trozos[2] == NULL) {
+        printf("Uso: backpri prio comando args\n");
+        return;
+    }
+
+    int prioridad = atoi(trozos[1]);
+    pid_t pid;
+
+    if ((pid = fork()) == 0) {
+        if (setpriority(PRIO_PROCESS, getpid(), prioridad) == -1) {
+            perror("Error al cambiar la prioridad");
+            exit(EXIT_FAILURE);
+        }
+
+        char *path = Ejecutable(trozos[2]);
+        if (execvp(path, &trozos[2]) == -1) {
+            perror("Error ejecutando comando en background");
+            exit(EXIT_FAILURE);
+        }
+    } else if (pid > 0) {
+        dataProc newProc;
+        newProc.pid = pid;
+        newProc.estado = ACTIVE;
+        newProc.user = strdup(username(getuid()));
+        newProc.cmd = strdup(trozos[2]);
+
+        time_t currentTime = time(NULL);
+        newProc.date = strdup(ctime(&currentTime));
+
+        if (!insertItemProcList(newProc, listProc)) {
+            printf("Error: No se pudo añadir el proceso a la lista\n");
+        } else {
+            printf("Proceso %d añadido en background con prioridad %d\n", pid, prioridad);
+        }
+    } else {
+        perror("Error al crear proceso en background");
+    }
+}
 
 void listjobs(tListProc *listProc) {
-  int i;
-  dataProc proc;
+    int i;
+    dataProc proc;
 
-  if (isEmptyProcList(*listProc)) {
-      printf("No hay procesos en background.\n");
-      return;
-  }
+    for (i = firstProcList(*listProc); i <= lastProcList(*listProc); i++) {
+        proc = getItemProcList(i, *listProc);
+        int priority = getpriority(PRIO_PROCESS, proc.pid);
 
-  for (i = firstProcList(*listProc); i <= lastProcList(*listProc); i++) {
-      proc = getItemProcList(i, *listProc);
-      printf("PID: %d\tEstado: %s\tUsuario: %s\tComando: %s\tFecha: %s\n",
-              proc.pid,
-              proc.estado == ACTIVE   ? "ACTIVO" :
-              proc.estado == FINISHED ? "FINALIZADO" :
-              proc.estado == STOPPED  ? "DETENIDO" :
-              proc.estado == SIGNALED ? "SEÑALADO" : "DESCONOCIDO",
-              proc.user, proc.cmd, proc.date);
-  }
+        printf("%6d %10s p=%-2d %s %-10s (%d) %s\n",
+               proc.pid,                                     // PID
+               proc.user,                                    // Usuario
+               priority == -1 ? -1 : priority,              // Prioridad
+               proc.date,                                   // Fecha/Hora
+               proc.estado == ACTIVE   ? "ACTIVO" :
+               proc.estado == FINISHED ? "TERMINADO" :
+               proc.estado == STOPPED  ? "DETENIDO" :
+               proc.estado == SIGNALED ? "SEÑALADO" : "DESCONOCIDO", // Estado
+               proc.end,                                    // ExitCode
+               proc.cmd);                                   // Comando
+    }
 }
 
 void deljobs(char *trozos[], tListProc *listProc) {
     int i;
     dataProc proc;
-
-    if (trozos[1] == NULL) {
-        printf("Uso: deljobs -term|-sig\n");
-        return;
-    }
 
     for (i = firstProcList(*listProc); i <= lastProcList(*listProc); i++) {
         proc = getItemProcList(i, *listProc);
@@ -444,4 +467,37 @@ void fg(char *trozos[], tListProc *listProc) {
     }
 
     printf("Error: No se encontró el proceso con PID %d en la lista de procesos en background.\n", pid);
+}
+
+void fgpri(char *trozos[], tListProc *listProc) {
+    if (trozos[1] == NULL || trozos[2] == NULL) {
+        printf("Uso: fgpri prio PID\n");
+        return;
+    }
+
+    int prioridad = atoi(trozos[1]);
+    pid_t pid = (pid_t)atoi(trozos[2]);
+    int i;
+    dataProc proc;
+
+    for (i = firstProcList(*listProc); i <= lastProcList(*listProc); i++) {
+        proc = getItemProcList(i, *listProc);
+        if (proc.pid == pid) {
+            printf("Cambiando prioridad del proceso %d a %d...\n", pid, prioridad);
+            if (setpriority(PRIO_PROCESS, pid, prioridad) == -1) {
+                perror("Error al cambiar la prioridad");
+                return;
+            }
+            printf("Trayendo proceso %d al foreground...\n", pid);
+            if (waitpid(pid, NULL, 0) == -1) {
+                perror("Error esperando al proceso");
+            } else {
+                printf("Proceso %d completado.\n", pid);
+                deleteItemProcList(i, listProc);
+            }
+            return;
+        }
+    }
+
+    printf("Error: No se encontró el proceso con PID %d.\n", pid);
 }

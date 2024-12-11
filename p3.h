@@ -51,5 +51,7 @@ void listjobs(tListProc *listProc);
 void deljobs(char *trozos[], tListProc *listProc);
 void search(char *trozos[], tSearchList *searchList);
 void fg(char *trozos[], tListProc *listProc);
+void fgpri(char *trozos[], tListProc *listProc);
+void backpri(char *trozos[], tListProc *listProc);
 
 #endif //P3_H
