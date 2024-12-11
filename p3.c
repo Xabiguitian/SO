@@ -4,7 +4,6 @@
 #include "p3.h"
 
 
-
 //función auxiliar para obtener el UID
 uid_t userUID(char *login) {
   struct passwd *p;
@@ -274,98 +273,175 @@ void execpri(char *tr[], char *input, tList *hist, tListM *M, tListProc *ListPro
 }*/
 
 void back(char *trozos[], tListProc *listProc) {
-  pid_t pid;
-  time_t currentTime;
-  struct tm *localTime;
-  char timeStr[128];
-
-  if (trozos[1] == NULL) {
-    printf("Uso: back comando args\n");
-    return;
-  }
-
-  if ((pid = fork()) == 0) {
-    // Proceso hijo: ejecuta el comando
-    if (execvp(trozos[1], &trozos[1]) == -1) {
-      perror("Error ejecutando comando en background");
-      exit(EXIT_FAILURE);
+    pid_t pid;
+    if (trozos[1] == NULL) {
+        printf("Uso: back comando args\n");
+        return;
     }
-  } else if (pid > 0) {
-    // Proceso padre: guarda el proceso en la lista
-    dataProc newProc;
-    newProc.pid = pid;
-    newProc.estado = ACTIVE;
-    newProc.user = strdup(username(getuid()));
-    newProc.cmd = strdup(trozos[1]);
 
-    // Obtén la hora actual
-    time(&currentTime);
-    localTime = localtime(&currentTime);
-    strftime(timeStr, sizeof(timeStr), "%Y-%m-%d %H:%M:%S", localTime);
-    newProc.date = strdup(timeStr);
+    if ((pid = fork()) == 0) {
+        // Proceso hijo
+        char *path = Ejecutable(trozos[1]);
+        
+        // Opcional: redirigir salida estándar y de error a un archivo
+        int fd = open("/dev/null", O_WRONLY); // Redirige la salida a /dev/null
+        if (fd != -1) {
+            dup2(fd, STDOUT_FILENO); // Redirige salida estándar
+            dup2(fd, STDERR_FILENO); // Redirige salida de error
+            close(fd);
+        }
 
-    if (!insertItemProcList(newProc, listProc)) {
-      printf("Error: No se pudo añadir el proceso a la lista\n");
+        if (execvp(path, &trozos[1]) == -1) {
+            perror("Error ejecutando comando en background");
+            exit(EXIT_FAILURE);
+        }
+    } else if (pid > 0) {
+        // Proceso padre
+        dataProc newProc;
+        newProc.pid = pid;
+        newProc.estado = ACTIVE;
+        newProc.user = strdup(username(getuid()));
+        newProc.cmd = strdup(trozos[1]);
+
+        time_t currentTime = time(NULL);
+        newProc.date = strdup(ctime(&currentTime));
+
+        if (!insertItemProcList(newProc, listProc)) {
+            printf("Error: No se pudo añadir el proceso a la lista\n");
+        } else {
+            printf("Proceso %d añadido en background\n", pid);
+        }
     } else {
-      printf("Proceso %d añadido en background\n", pid);
+        perror("Error al crear proceso en background");
     }
-  } else {
-    perror("Error al crear proceso en background");
-  }
 }
+
 
 void listjobs(tListProc *listProc) {
   int i;
   dataProc proc;
 
   if (isEmptyProcList(*listProc)) {
-    printf("No hay procesos en background.\n");
-    return;
+      printf("No hay procesos en background.\n");
+      return;
   }
 
   for (i = firstProcList(*listProc); i <= lastProcList(*listProc); i++) {
-    proc = getItemProcList(i, *listProc);
-    printf("PID: %d\tEstado: %s\tUsuario: %s\tComando: %s\tFecha: %s\n",
-          proc.pid,
-          proc.estado == ACTIVE   ? "ACTIVO" :
-          proc.estado == FINISHED ? "FINALIZADO" :
-          proc.estado == STOPPED  ? "DETENIDO" :
-          proc.estado == SIGNALED ? "SEÑALADO" : "DESCONOCIDO",
-          proc.user, proc.cmd, proc.date);
+      proc = getItemProcList(i, *listProc);
+      printf("PID: %d\tEstado: %s\tUsuario: %s\tComando: %s\tFecha: %s\n",
+              proc.pid,
+              proc.estado == ACTIVE   ? "ACTIVO" :
+              proc.estado == FINISHED ? "FINALIZADO" :
+              proc.estado == STOPPED  ? "DETENIDO" :
+              proc.estado == SIGNALED ? "SEÑALADO" : "DESCONOCIDO",
+              proc.user, proc.cmd, proc.date);
   }
 }
 
 void deljobs(char *trozos[], tListProc *listProc) {
-  int i;
-  dataProc proc;
+    int i;
+    dataProc proc;
 
-  if (trozos[1] == NULL) {
-    printf("Uso: deljobs -term|-sig\n");
-    return;
-  }
-
-  for (i = firstProcList(*listProc); i <= lastProcList(*listProc); i++) {
-    proc = getItemProcList(i, *listProc);
-
-    if (!strcmp(trozos[1], "-term")) {
-      if (kill(proc.pid, SIGTERM) == 0) {
-        printf("Proceso %d terminado correctamente.\n", proc.pid);
-        deleteItemProcList(i, listProc);
-        i--; // Ajustar índice debido a la eliminación
-      } else {
-        perror("Error al terminar proceso");
-      }
-    } else if (!strcmp(trozos[1], "-sig")) {
-      if (kill(proc.pid, SIGKILL) == 0) {
-        printf("Proceso %d eliminado correctamente.\n", proc.pid);
-        deleteItemProcList(i, listProc);
-        i--;
-      } else {
-        perror("Error al eliminar proceso");
-      }
-    } else {
-      printf("Parámetro no reconocido.\n");
-      return;
+    if (trozos[1] == NULL) {
+        printf("Uso: deljobs -term|-sig\n");
+        return;
     }
-  }
+
+    for (i = firstProcList(*listProc); i <= lastProcList(*listProc); i++) {
+        proc = getItemProcList(i, *listProc);
+
+        if (!strcmp(trozos[1], "-term")) {
+            if (kill(proc.pid, SIGTERM) == 0) {
+                printf("Proceso %d terminado correctamente.\n", proc.pid);
+                deleteItemProcList(i, listProc);
+                i--; // Ajustar índice debido a la eliminación
+            } else {
+                perror("Error al terminar proceso");
+            }
+        } else if (!strcmp(trozos[1], "-sig")) {
+            if (kill(proc.pid, SIGKILL) == 0) {
+                printf("Proceso %d eliminado correctamente.\n", proc.pid);
+                deleteItemProcList(i, listProc);
+                i--;
+            } else {
+                perror("Error al eliminar proceso");
+            }
+        } else {
+            printf("Parámetro no reconocido.\n");
+            return;
+        }
+    }
+}
+
+void search(char *trozos[], tSearchList *searchList) {
+    if (trozos[1] == NULL) {
+        printf("Uso: search -add|-del|-clear|-path [directorio]\n");
+        return;
+    }
+
+    if (!strcmp(trozos[1], "-add")) {
+        if (trozos[2] == NULL) {
+            printf("Error: Debe especificar un directorio.\n");
+            return;
+        }
+        if (insertSearchList(searchList, trozos[2])) {
+            printf("Directorio %s añadido a la lista de búsqueda.\n", trozos[2]);
+        } else {
+            printf("Error al añadir el directorio.\n");
+        }
+    } else if (!strcmp(trozos[1], "-del")) {
+        if (trozos[2] == NULL) {
+            printf("Error: Debe especificar un directorio.\n");
+            return;
+        }
+        removeSearchList(searchList, trozos[2]);
+        printf("Directorio %s eliminado de la lista de búsqueda.\n", trozos[2]);
+    } else if (!strcmp(trozos[1], "-clear")) {
+        createEmptySearchList(searchList);
+        printf("Lista de búsqueda limpiada.\n");
+    } else if (!strcmp(trozos[1], "-path")) {
+        char *path = getenv("PATH");
+        if (path) {
+            char *dir = strtok(path, ":");
+            while (dir != NULL) {
+                insertSearchList(searchList, dir);
+                dir = strtok(NULL, ":");
+            }
+            printf("Lista de búsqueda actualizada con el PATH.\n");
+        } else {
+            printf("Error al acceder a PATH.\n");
+        }
+    } else {
+        printf("Comando no reconocido para search.\n");
+    }
+}
+
+void fg(char *trozos[], tListProc *listProc) {
+    pid_t pid;
+
+    if (trozos[1] == NULL) {
+        printf("Uso: fg PID\n");
+        return;
+    }
+
+    pid = (pid_t)atoi(trozos[1]);
+    int i;
+    dataProc proc;
+
+    // Buscar el proceso en la lista de procesos
+    for (i = firstProcList(*listProc); i <= lastProcList(*listProc); i++) {
+        proc = getItemProcList(i, *listProc);
+        if (proc.pid == pid) {
+            // Esperar al proceso en foreground
+            if (waitpid(pid, NULL, 0) == -1) {
+                perror("Error esperando al proceso");
+            } else {
+                printf("Proceso %d ejecutado en foreground completado.\n", pid);
+                deleteItemProcList(i, listProc);
+            }
+            return;
+        }
+    }
+
+    printf("Error: No se encontró el proceso con PID %d en la lista de procesos en background.\n", pid);
 }

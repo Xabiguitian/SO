@@ -77,7 +77,7 @@ void updateSearchList(tSearchList *searchList, char *dir) {
 
 // Función para encontrar el directorio de un ejecutable
 char *Ejecutable(char *s) {
-    static char path[MAX];
+    static char path[NAMEMAX];
     struct stat st;
 
     if (s == NULL)
@@ -94,9 +94,9 @@ char *Ejecutable(char *s) {
         if (dir == NULL)
             continue;
 
-        strncpy(path, dir, MAX - 1);
-        strncat(path, "/", MAX - strlen(path) - 1);
-        strncat(path, s, MAX - strlen(path) - 1);
+        strncpy(path, dir, NAMEMAX - 1);
+        strncat(path, "/", NAMEMAX - strlen(path) - 1);
+        strncat(path, s, NAMEMAX - strlen(path) - 1);
 
         if (lstat(path, &st) != -1)
             return path;
@@ -124,5 +124,3 @@ int Execpve(char *tr[], char **NewEnv, int *pprio) {
     else
         return execve(p, tr, NewEnv);
 }
-
-

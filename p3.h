@@ -27,6 +27,7 @@
 #include "memlist.h"
 #include "file.h"
 #include "proclist.h"
+#include "searchdirlist.h"
 
 
 
@@ -48,5 +49,7 @@ void execpri(char *tr[], char *input, tList *hist, tListM *M, tListProc *ListPro
 void back(char *trozos[], tListProc *listProc);
 void listjobs(tListProc *listProc);
 void deljobs(char *trozos[], tListProc *listProc);
+void search(char *trozos[], tSearchList *searchList);
+void fg(char *trozos[], tListProc *listProc);
 
 #endif //P3_H

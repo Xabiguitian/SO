@@ -18,7 +18,7 @@
 
 #define MAXDIRS 100  // Número máximo de directorios en la lista
 #define MAXPATH 256  // Tamaño máximo de las rutas
-#define MAX 4096
+#define NAMEMAX 4096
 
 // Estructura para la lista de búsqueda
 typedef struct {
