@@ -58,13 +58,13 @@ void removePositionSearchList(tSearchList *searchList, int position) {
         searchList->lastPosSearch--;
     }
 }
-
+/*
 char *getItemSearchList(tSearchList searchList, int position) {
     if (position >= 0 && position < searchList.lastPosSearch) {
         return searchList.dirs[position];
     }
     return NULL;
-}
+}*/
 
 void updateSearchList(tSearchList *searchList, char *dir) {
     for (int i = 0; i < searchList->lastPosSearch; i++) {
