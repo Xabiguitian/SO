@@ -109,21 +109,20 @@ void processCommand(char *command,char *input, tList *historial, char * trozos[]
             Cmd_fork(trozos,listProc);
         }else if (strcmp(trozos[0],"showvar")==0) {
             showvar(trozos,environp,env);
-
         }else if (strcmp(trozos[0],"subsvar")==0) {
             subsvar(trozos,environp,env);
         }else if(strcmp(trozos[0],"changevar")==0){
             changevar(trozos,environp,env);
-
         }else if(strcmp(trozos[0],"environ")==0) {
             Cenviron(trozos, environp, env);
         }else if(strcmp(trozos[0],"exec")==0) {
             execCmd(trozos,input,historial, mL, listProc, environp);
-
         }else if(strcmp(trozos[0],"execpri")==0){
             execpri(trozos,input,historial, mL, listProc, environp);
         }else if(strcmp(trozos[0],"back")==0){
             back(trozos, listProc);
+        }else if(strcmp(trozos[0],"backpri")==0){
+            backpri(trozos, listProc);
         }else if(strcmp(trozos[0],"listjobs")==0){
             listjobs(trozos, listProc);
         }else if(strcmp(trozos[0],"deljobs")==0){
@@ -132,6 +131,8 @@ void processCommand(char *command,char *input, tList *historial, char * trozos[]
             //search(trozos, searchList);
         }else if(strcmp(trozos[0],"fg")==0){
             fg(trozos, listProc);
+        }else if(strcmp(trozos[0],"fgpri")==0){
+            fgpri(trozos, listProc);
         }else{
             printf("No se reconoce el comando.\n");
         }
