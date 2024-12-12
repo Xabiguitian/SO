@@ -344,40 +344,44 @@ void backpri(char *trozos[], tListProc *listProc) {
     }
 }
 
-void listjobs (char *trozos[], tListProc *list_proc){
-	if(trozos[1]==NULL){
-    int pos;
-    dataProc item;
-    if(isEmptyProcList(*list_proc)){
-      return;
-    } else {
-      for(pos = firstProcList(*list_proc); pos <= lastProcList(*list_proc); pos++ ){
-        item = getItemProcList(pos, *list_proc);
-        item = actualizar_estado(item, 1);
-        updateItemProcList(item, pos, list_proc);
+void listar(tListProc *listProc){
+	int pos;
+	dataProc item;
+	if(isEmptyProcList(*listProc)){
+		return;
+	} else {
+		for(pos = firstProcList(*listProc); pos <= lastProcList(*listProc); pos++ ){
+			item = getItemProcList(pos, *listProc);
+			item = actualizar_estado(item, 1);
+			updateItemProcList(item, pos, listProc);
 
-        char *estado;
-        if(item.estado == STOPPED){
-          estado = "STOPPED";
-          printf("%d\t%s p=%d %s %s (%d) %s\n", item.pid, item.user, getpriority(PRIO_PROCESS, item.pid), item.date, estado, item.end, item.cmd);
-        }
-        if(item.estado == ACTIVE){
-          estado = "ACTIVE";
-          printf("%d\t%s p=%d %s %s (%d) %s\n", item.pid, item.user, getpriority(PRIO_PROCESS, item.pid), item.date, estado, item.end, item.cmd);
-        }
-        if(item.estado == SIGNALED){
-          estado = "SIGNALED";
-          printf("%d\t%s p=%d %s %s (%d) %s\n", item.pid, item.user, getpriority(PRIO_PROCESS, item.pid), item.date, estado, item.end, item.cmd);
-        }
-        if(item.estado == FINISHED){
-          estado = "FINISHED";
-          printf("%d\t%s p=%d %s %s (%d) %s\n", item.pid, item.user, getpriority(PRIO_PROCESS, item.pid), item.date, estado, item.end, item.cmd);
-        }
-        if(item.estado == UNKNOWN){
-          estado = "UNKOWN";
-        }
+      char *estado;
+      if(item.estado == STOPPED){
+        estado = "STOPPED";
+        printf("%d\t%s p=%d %s %s (%d) %s\n", item.pid, item.user, getpriority(PRIO_PROCESS, item.pid), item.date, estado, item.end, item.cmd);
       }
-    }
+      if(item.estado == ACTIVE){
+        estado = "ACTIVE";
+        printf("%d\t%s p=%d %s %s (%d) %s\n", item.pid, item.user, getpriority(PRIO_PROCESS, item.pid), item.date, estado, item.end, item.cmd);
+      }
+      if(item.estado == SIGNALED){
+        estado = "SIGNALED";
+        printf("%d\t%s p=%d %s %s (%d) %s\n", item.pid, item.user, getpriority(PRIO_PROCESS, item.pid), item.date, estado, item.end, item.cmd);
+      }
+      if(item.estado == FINISHED){
+        estado = "FINISHED";
+        printf("%d\t%s p=%d %s %s (%d) %s\n", item.pid, item.user, getpriority(PRIO_PROCESS, item.pid), item.date, estado, item.end, item.cmd);
+      }
+      if(item.estado == UNKNOWN){
+        estado = "UNKOWN";
+      }
+		}
+	}
+}
+
+void listjobs (char *trozos[], tListProc *listProc){
+	if(trozos[1]==NULL){
+    listar(listProc);
 	}
 	else {
 		printf("Error: Número de argumentos inválido\n");
@@ -416,33 +420,40 @@ dataProc actualizar_estado(dataProc item, int opciones){
 
 
 void deljobs(char *trozos[], tListProc *listProc) {
-    int i;
-    dataProc proc;
-
-    for (i = firstProcList(*listProc); i <= lastProcList(*listProc); i++) {
-        proc = getItemProcList(i, *listProc);
-
-        if (!strcmp(trozos[1], "-term")) {
-            if (kill(proc.pid, SIGTERM) == 0) {
-                printf("Proceso %d terminado correctamente.\n", proc.pid);
-                deleteItemProcList(i, listProc);
-                i--; // Ajustar índice debido a la eliminación
-            } else {
-                perror("Error al terminar proceso");
-            }
-        } else if (!strcmp(trozos[1], "-sig")) {
-            if (kill(proc.pid, SIGKILL) == 0) {
-                printf("Proceso %d eliminado correctamente.\n", proc.pid);
-                deleteItemProcList(i, listProc);
-                i--;
-            } else {
-                perror("Error al eliminar proceso");
-            }
-        } else {
-            printf("Parámetro no reconocido.\n");
-            return;
+  if(trozos[1]==NULL){
+		return;
+	} else if(strcmp(trozos[1], "-term")==0 && trozos[2]==NULL){
+    int pos;
+    dataProc item;
+    if(isEmptyProcList(*listProc)){
+      return;
+    } else {
+      for(pos = firstProcList(*listProc); pos<=lastProcList(*listProc); pos++){
+        item = getItemProcList(pos, *listProc);
+        if(item.estado==FINISHED){
+          deleteItemProcList(pos, listProc);
         }
+      }
     }
+		return;
+	} else if (strcmp(trozos[1], "-sig")==0 && trozos[2]==NULL){
+		int pos;
+    dataProc item;
+    if(isEmptyProcList(*listProc)){
+      return;
+    } else {
+      for(pos = firstProcList(*listProc); pos<=lastProcList(*listProc); pos++){
+        item = getItemProcList(pos, *listProc);
+        if(item.estado==SIGNALED){
+          deleteItemProcList(pos, listProc);
+        }
+      }
+    }
+		return;
+	} else {
+		listar(listProc);
+		return;
+	}
 }
 
 void search(char *trozos[], tSearchList *searchList) {
@@ -549,4 +560,13 @@ void fgpri(char *trozos[], tListProc *listProc) {
     }
 
     printf("Error: No se encontró el proceso con PID %d.\n", pid);
+}
+
+int cambiarPrioridad(char *val, pid_t pid) {
+	int pri;
+	pri = strtol(val, NULL, 10);
+	if(setpriority(PRIO_PROCESS, pid, pri)==-1){
+		return -1;
+	}	
+	return pri;
 }

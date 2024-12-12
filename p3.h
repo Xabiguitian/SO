@@ -47,6 +47,7 @@ void Cenviron(char *trozos[], char * arg3[], char *env[]);
 void execCmd(char *tr[], char *input, tList *hist, tListM *M, tListProc *ListProc, char *environp[]);
 void execpri(char *tr[], char *input, tList *hist, tListM *M, tListProc *ListProc, char *environp[]);
 void back(char *trozos[], tListProc *listProc);
+void listar(tListProc *listProc);
 void listjobs (char *trozos[], tListProc *list_proc);
 dataProc actualizar_estado(dataProc item, int opciones);
 void deljobs(char *trozos[], tListProc *listProc);
@@ -54,5 +55,6 @@ void search(char *trozos[], tSearchList *searchList);
 void fg(char *trozos[], tListProc *listProc);
 void fgpri(char *trozos[], tListProc *listProc);
 void backpri(char *trozos[], tListProc *listProc);
+int cambiarPrioridad(char *val, pid_t pid);
 
 #endif //P3_H
