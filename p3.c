@@ -472,7 +472,14 @@ void deljobs(char *trozos[], tListProc *listProc) {
 
 void search(char *trozos[], tSearchList *searchList) {
     if (trozos[1] == NULL) {
-        printf("Uso: search -add|-del|-clear|-path [directorio]\n");
+        if (isEmptySearchList(*searchList)) {
+            printf("Lista de búsqueda vacía.\n");
+        } else {
+            printf("Lista de búsqueda:\n");
+            for (int i = firstSearchList(*searchList); i < lastSearchList(*searchList); i = nextSearchList(*searchList, i)) {
+                printf("%s\n", getItemSearchList(*searchList, i));
+            }
+        }
         return;
     }
 
@@ -498,13 +505,15 @@ void search(char *trozos[], tSearchList *searchList) {
         printf("Lista de búsqueda limpiada.\n");
     } else if (!strcmp(trozos[1], "-path")) {
         char *path = getenv("PATH");
+        int count = 0;
         if (path) {
             char *dir = strtok(path, ":");
             while (dir != NULL) {
                 insertSearchList(searchList, dir);
                 dir = strtok(NULL, ":");
+                count++;
             }
-            printf("Lista de búsqueda actualizada con el PATH.\n");
+            printf("Importados %d directorios en la ruta de búsqueda\n", count);
         } else {
             printf("Error al acceder a PATH.\n");
         }
