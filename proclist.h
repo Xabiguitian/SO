@@ -1,7 +1,3 @@
-//
-// Created by angela on 3/12/24.
-//
-
 #ifndef PROCLIST_H
 #define PROCLIST_H
 

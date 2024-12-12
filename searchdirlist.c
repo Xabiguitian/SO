@@ -1,7 +1,3 @@
-//
-// Created by angela on 3/12/24.
-//
-
 #include "searchdirlist.h"
 
 void createEmptySearchList(tSearchList *searchList){
@@ -75,6 +71,8 @@ void updateSearchList(tSearchList *searchList, char *dir) {
     }
 }
 
+tSearchList LibroDeBusqueda;
+
 // Función para encontrar el directorio de un ejecutable
 char *Ejecutable(char *s) {
     static char path[NAMEMAX];
@@ -88,8 +86,8 @@ char *Ejecutable(char *s) {
         return s; // Ruta absoluta o relativa
 
     // Recorrer la lista de directorios
-    for (int i = firstSearchList(globalSearchList); i < lastSearchList(globalSearchList); i = nextSearchList(globalSearchList, i)) {
-        char *dir = getItemSearchList(globalSearchList, i);
+    for (int i = firstSearchList(LibroDeBusqueda); i < lastSearchList(LibroDeBusqueda); i = nextSearchList(LibroDeBusqueda, i)) {
+        char *dir = getItemSearchList(LibroDeBusqueda, i);
 
         if (dir == NULL)
             continue;

@@ -1,6 +1,3 @@
-//
-// Created by angela on 3/12/24.
-//
 #include "p3.h"
 
 

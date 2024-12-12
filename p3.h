@@ -1,7 +1,3 @@
-//
-// Created by angela on 3/12/24.
-//
-
 #ifndef P3_H
 #define P3_H
 #include <stdio.h>
