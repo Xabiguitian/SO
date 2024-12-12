@@ -67,8 +67,8 @@ void Cmd_fork (char * tr[], tListProc * ListProc) {
     else if (pid!=-1)
         waitpid (pid,NULL,0);
 }
-void Cenviron(char *trozos[], char * arg3[], char *env[]){
 
+void Cenviron(char *trozos[], char * arg3[], char *env[]){
   if (trozos[1] == NULL) {
     printVar(arg3, "main arg3");
   }else if (! strcmp(trozos[1],"-addr")) {
@@ -76,15 +76,9 @@ void Cenviron(char *trozos[], char * arg3[], char *env[]){
     printf("main arg3: %p (almacenado en %p)\n", arg3, &arg3);
   }else if (! strcmp(trozos[1],"-environ")) {
     printVar(env, "environ");
-
-
   }else
     printf("Parámetros incorrectos\n");
 }
-
-
-
-
 
 
 // Codigo dado por los profesores:
@@ -104,6 +98,7 @@ int BuscarVariable (char * var, char *e[])  /*busca una variable en el entorno q
   errno=ENOENT;   /*no hay tal variable*/
   return(-1);
 }
+
 int CambiarVariable(char * var, char * newVar, char * valor, char *e[]) /*cambia una variable en el entorno que se le pasa como parÃ¡metro*/
 {                                                        /*lo hace directamente, no usa putenv*/
   int pos;
@@ -306,7 +301,6 @@ void back(char *trozos[], tListProc *listProc) {
 
 void backpri(char *trozos[], tListProc *listProc) {
     if (trozos[1] == NULL || trozos[2] == NULL) {
-        printf("Uso: backpri prio comando args\n");
         return;
     }
 
@@ -315,13 +309,20 @@ void backpri(char *trozos[], tListProc *listProc) {
 
     if ((pid = fork()) == 0) {
         if (setpriority(PRIO_PROCESS, getpid(), prioridad) == -1) {
-            perror("Error al cambiar la prioridad");
+            perror("Error al establecer la prioridad");
             exit(EXIT_FAILURE);
         }
 
         char *path = Ejecutable(trozos[2]);
+        int fd = open("/dev/null", O_WRONLY);
+        if (fd != -1) {
+            dup2(fd, STDOUT_FILENO);
+            dup2(fd, STDERR_FILENO);
+            close(fd);
+        }
+
         if (execvp(path, &trozos[2]) == -1) {
-            perror("Error ejecutando comando en background");
+            perror("No ejecutado");
             exit(EXIT_FAILURE);
         }
     } else if (pid > 0) {
