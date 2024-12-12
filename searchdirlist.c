@@ -99,23 +99,3 @@ char *Ejecutable(char *s) {
 
     return NULL;
 }
-
-// Función para ejecutar un programa con prioridad y entorno opcionales
-int Execpve(char *tr[], char **NewEnv, int *pprio) {
-    char *p;
-
-    if (tr[0] == NULL || (p = Ejecutable(tr[0])) == NULL) {
-        errno = EFAULT;
-        return -1;
-    }
-
-    if (pprio != NULL && setpriority(PRIO_PROCESS, getpid(), *pprio) == -1 && errno) {
-        printf("Imposible cambiar prioridad: %s\n", strerror(errno));
-        return -1;
-    }
-
-    if (NewEnv == NULL)
-        return execv(p, tr);
-    else
-        return execve(p, tr, NewEnv);
-}

@@ -116,7 +116,7 @@ void processCommand(char *command,char *input, tList *historial, char * trozos[]
         }else if(strcmp(trozos[0],"environ")==0) {
             Cenviron(trozos, environp, env);
         }else if(strcmp(trozos[0],"exec")==0) {
-            execCmd(trozos,input,historial, mL, listProc, environp);
+            execCmd(trozos);
         }else if(strcmp(trozos[0],"execpri")==0){
             execpri(trozos,input,historial, mL, listProc, environp);
         }else if(strcmp(trozos[0],"back")==0){
@@ -153,7 +153,6 @@ int main(int argc, char *argv[], char *environp[]) {
     tListM mL;
     tListProc listProc;
     tSearchList searchList;
-    tSearchList LibroDeBusqueda;
     int fin=1;
 
 

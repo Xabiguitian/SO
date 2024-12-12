@@ -217,23 +217,60 @@ char *valor;
   }
 }
 
-void execCmd(char *tr[], char *input, tList *hist, tListM *M, tListProc *ListProc, char *envp[]) {
-  if (tr[1] == NULL) {
-    printf("Uso: exec VAR1 VAR2 ..prog args....[@pri]\n");
-  } else {
-    int cnt = 0;
-    char *tr2[MAXTROZOS];
-    int n = TrocearCadena(input, tr2);
-
-    while (tr[cnt + 1] != NULL)
-      cnt++;
-    if (execvp(tr[1], tr + 1) == -1) {
-      perror("Imposible ejecutar el programa");
+int Execpve(char *tr[], char **NewEnv, int *pprio)
+{
+    char *p;
+    // Verificar que el primer argumento no sea NULL y que el ejecutable sea válido
+    if (tr[0] == NULL || (p = Ejecutable(tr[0])) == NULL) {
+        errno = EFAULT;
+        return -1;
     }
-  }
+
+    // Si pprio no es NULL, intentar cambiar la prioridad del proceso
+    if (pprio != NULL) {
+        if (setpriority(PRIO_PROCESS, getpid(), *pprio) == -1) {
+            printf("Imposible cambiar prioridad: %s\n", strerror(errno));
+            return -1;
+        }
+    }
+
+    // Mostrar los argumentos para depuración
+    printf("Ejecutando comando: %s\n", p);
+    for (int i = 0; tr[i] != NULL; i++) {
+        printf("Argumento[%d]: %s\n", i, tr[i]);
+    }
+
+    // Si NewEnv es NULL, usar execv. De lo contrario, usar execve.
+    if (NewEnv == NULL) {
+        return execv(p, tr);
+    } else {
+        return execve(p, tr, NewEnv);
+    }
 }
 
+void execCmd(char *trozos[]) {
+    char *args[MAXTROZOS];  // Arreglo para almacenar los argumentos
+    int i = 0;
 
+    // Asegúrate de que el primer argumento no sea NULL
+    if (trozos[0] == NULL) {
+        printf("Error: Comando no válido.\n");
+        return;
+    }
+
+    // Copiar los trozos del comando en el arreglo de argumentos
+    while (trozos[i] != NULL) {
+        args[i] = trozos[i];
+        i++;
+    }
+    args[i] = NULL;  // El último argumento debe ser NULL, como requiere execve
+
+    // Ahora, llamamos a Execpve para ejecutar el comando
+    if (Execpve(args, NULL, NULL) == -1) {
+        // Si Execpve devuelve -1, hubo un error al intentar ejecutar el comando
+        perror("Error al ejecutar el comando");
+    }
+}
 
 
 void execpri(char *tr[], char *input, tList *hist, tListM *M, tListProc *ListProc, char *envp[]) {
@@ -253,9 +290,9 @@ void execpri(char *tr[], char *input, tList *hist, tListM *M, tListProc *ListPro
         return;
       }
       tr2[n - 1] = NULL;
-      execCmd(tr, input, hist, M, ListProc, envp);
+      execCmd(tr);
     } else {
-      execCmd(tr, input, hist, M, ListProc, envp);
+      execCmd(tr);
     }
   }
 }
