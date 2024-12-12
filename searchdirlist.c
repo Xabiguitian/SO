@@ -75,7 +75,7 @@ tSearchList LibroDeBusqueda;
 
 // Función para encontrar el directorio de un ejecutable
 char *Ejecutable(char *s) {
-    static char path[NAMEMAX];
+    static char path[MAXPATH];
     struct stat st;
 
     if (s == NULL)
@@ -83,24 +83,21 @@ char *Ejecutable(char *s) {
 
     // Verificar si es una ruta absoluta o relativa
     if (s[0] == '/' || !strncmp(s, "./", 2) || !strncmp(s, "../", 3))
-        return s; // Ruta absoluta o relativa
+        return s;
 
-    // Recorrer la lista de directorios
+    // Buscar en la lista de búsqueda global
     for (int i = firstSearchList(LibroDeBusqueda); i < lastSearchList(LibroDeBusqueda); i = nextSearchList(LibroDeBusqueda, i)) {
         char *dir = getItemSearchList(LibroDeBusqueda, i);
-
         if (dir == NULL)
             continue;
 
-        strncpy(path, dir, NAMEMAX - 1);
-        strncat(path, "/", NAMEMAX - strlen(path) - 1);
-        strncat(path, s, NAMEMAX - strlen(path) - 1);
-
-        if (lstat(path, &st) != -1)
+        snprintf(path, MAXPATH, "%s/%s", dir, s);
+        if (stat(path, &st) == 0 && (st.st_mode & S_IXUSR)) {
             return path;
+        }
     }
 
-    return s;
+    return NULL;
 }
 
 // Función para ejecutar un programa con prioridad y entorno opcionales

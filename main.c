@@ -153,6 +153,7 @@ int main(int argc, char *argv[], char *environp[]) {
     tListM mL;
     tListProc listProc;
     tSearchList searchList;
+    tSearchList LibroDeBusqueda;
     int fin=1;
 
 

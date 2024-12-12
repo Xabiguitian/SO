@@ -262,98 +262,126 @@ void execpri(char *tr[], char *input, tList *hist, tListM *M, tListProc *ListPro
 
 void back(char *trozos[], tListProc *listProc) {
     pid_t pid;
+    char *path;
 
     if (trozos[1] == NULL) {
         printf("Uso: back comando args\n");
         return;
     }
 
-    char *path = Ejecutable(trozos[1]);
-    if (path == NULL) {
-        printf("No ejecutado: Comando no encontrado\n");
+    path = Ejecutable(trozos[1]);
+
+    dataProc newProc;
+    newProc.user = strdup(username(getuid()));
+    newProc.cmd = strdup(trozos[1]);
+
+    time_t currentTime = time(NULL);
+    newProc.date = strdup(ctime(&currentTime));
+
+    if (path == NULL || access(path, X_OK) == -1) {
+        newProc.pid = 0; // PID ficticio
+        newProc.estado = FINISHED;
+        newProc.end = 255; // Código de salida por defecto
+        printf("No ejecutado: No such file or directory\n");
+        insertItemProcList(newProc, listProc);
         return;
     }
 
     if ((pid = fork()) == 0) {
-        int fd = open("/dev/null", O_WRONLY);
-        if (fd != -1) {
-            dup2(fd, STDOUT_FILENO);
-            dup2(fd, STDERR_FILENO);
-            close(fd);
-        }
-
+        // Proceso hijo: ejecutar el comando
         char *args[] = {path, NULL};
-        if (execve(path, args, environ) == -1) {
-            perror("No ejecutado");
-            exit(EXIT_FAILURE);
-        }
+        execve(path, args, environ);
+        perror("No ejecutado");
+        exit(EXIT_FAILURE);
     } else if (pid > 0) {
-        dataProc newProc;
+        // Proceso padre: esperar y registrar
         newProc.pid = pid;
         newProc.estado = ACTIVE;
-        newProc.user = strdup(username(getuid()));
-        newProc.cmd = strdup(trozos[1]);
-
-        time_t currentTime = time(NULL);
-        newProc.date = strdup(ctime(&currentTime));
+        newProc.end = 0; // Código de salida no definido aún
 
         if (!insertItemProcList(newProc, listProc)) {
             printf("Error: No se pudo añadir el proceso a la lista\n");
         } else {
-            printf("Proceso %d añadido en background\n", pid);
+            // Esperar al proceso y registrar salida
+            waitpid(pid, &newProc.end, 0);
+            newProc.estado = FINISHED;
+
+            // Mostrar directamente la salida del comando
+            printf("\n");
+            fflush(stdout);
         }
+        updateItemProcList(newProc, lastProcList(*listProc), listProc);
     } else {
         perror("Error al crear proceso en background");
     }
 }
 
 void backpri(char *trozos[], tListProc *listProc) {
+    pid_t pid;
+    char *path;
+
     if (trozos[1] == NULL || trozos[2] == NULL) {
+        printf("Uso: backpri prioridad comando args\n");
         return;
     }
 
     int prioridad = atoi(trozos[1]);
-    char *path = Ejecutable(trozos[2]);
-    if (path == NULL) {
-        printf("No ejecutado: Comando no encontrado\n");
+    path = Ejecutable(trozos[2]);
+
+    dataProc newProc;
+    newProc.user = strdup(username(getuid()));
+    newProc.cmd = strdup(trozos[2]);
+
+    time_t currentTime = time(NULL);
+    newProc.date = strdup(ctime(&currentTime));
+
+    if (path == NULL || access(path, X_OK) == -1) {
+        newProc.pid = 0; // PID ficticio
+        newProc.estado = FINISHED;
+        newProc.end = 255; // Código de salida por defecto
+        printf("No ejecutado: No such file or directory\n");
+
+        // Establecer prioridad como -1
+        if (!insertItemProcList(newProc, listProc)) {
+            printf("Error: No se pudo añadir el proceso a la lista\n");
+        } else {
+            newProc.state = -1; // Prioridad por defecto al fallar
+            updateItemProcList(newProc, lastProcList(*listProc), listProc);
+        }
+
         return;
     }
 
-    pid_t pid;
-
     if ((pid = fork()) == 0) {
+        // Proceso hijo: establecer prioridad y ejecutar el comando
         if (setpriority(PRIO_PROCESS, getpid(), prioridad) == -1) {
-            perror("Error al establecer la prioridad");
+            perror("No se pudo establecer la prioridad");
             exit(EXIT_FAILURE);
-        }
-
-        int fd = open("/dev/null", O_WRONLY);
-        if (fd != -1) {
-            dup2(fd, STDOUT_FILENO);
-            dup2(fd, STDERR_FILENO);
-            close(fd);
         }
 
         char *args[] = {path, NULL};
-        if (execve(path, args, environ) == -1) {
-            perror("No ejecutado");
-            exit(EXIT_FAILURE);
-        }
+        execve(path, args, environ);
+        perror("No ejecutado");
+        exit(EXIT_FAILURE);
     } else if (pid > 0) {
-        dataProc newProc;
+        // Proceso padre: esperar y registrar
         newProc.pid = pid;
         newProc.estado = ACTIVE;
-        newProc.user = strdup(username(getuid()));
-        newProc.cmd = strdup(trozos[2]);
-
-        time_t currentTime = time(NULL);
-        newProc.date = strdup(ctime(&currentTime));
+        newProc.end = 0; // Código de salida no definido aún
 
         if (!insertItemProcList(newProc, listProc)) {
             printf("Error: No se pudo añadir el proceso a la lista\n");
         } else {
             printf("Proceso %d añadido en background con prioridad %d\n", pid, prioridad);
+            // Esperar al proceso y registrar salida
+            waitpid(pid, &newProc.end, 0);
+            newProc.estado = FINISHED;
+
+            // Mostrar directamente la salida del comando
+            printf("\n");
+            fflush(stdout);
         }
+        updateItemProcList(newProc, lastProcList(*listProc), listProc);
     } else {
         perror("Error al crear proceso en background");
     }
@@ -472,6 +500,7 @@ void deljobs(char *trozos[], tListProc *listProc) {
 
 void search(char *trozos[], tSearchList *searchList) {
     if (trozos[1] == NULL) {
+        // Sin argumentos, imprimir la lista actual
         if (isEmptySearchList(*searchList)) {
             printf("Lista de búsqueda vacía.\n");
         } else {
@@ -509,11 +538,14 @@ void search(char *trozos[], tSearchList *searchList) {
         if (path) {
             char *dir = strtok(path, ":");
             while (dir != NULL) {
-                insertSearchList(searchList, dir);
+                if (insertSearchList(searchList, dir)) {
+                    count++;
+                }
                 dir = strtok(NULL, ":");
-                count++;
             }
-            printf("Importados %d directorios en la ruta de búsqueda\n", count);
+            // Sincronizar con la lista global
+            LibroDeBusqueda = *searchList;
+            printf("Importados %d directorios en la ruta de búsqueda.\n", count);
         } else {
             printf("Error al acceder a PATH.\n");
         }

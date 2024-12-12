@@ -22,6 +22,8 @@ typedef struct tSearchList{
     int lastPosSearch;                  // Número de directorios en la lista
 } tSearchList;
 
+tSearchList LibroDeBusqueda;
+
 void createEmptySearchList(tSearchList *searchList);
 bool isEmptySearchList(tSearchList searchList);
 int firstSearchList(tSearchList searchList);
