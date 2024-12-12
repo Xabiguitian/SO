@@ -1,8 +1,3 @@
-//
-// Created by angela on 3/12/24.
-//
-
-
 #include "proclist.h"
 
 void createEmptyProcList(tListProc *Proc) {

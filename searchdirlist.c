@@ -1,7 +1,3 @@
-//
-// Created by angela on 3/12/24.
-//
-
 #include "searchdirlist.h"
 
 void createEmptySearchList(tSearchList *searchList){
@@ -88,8 +84,8 @@ char *Ejecutable(char *s) {
         return s; // Ruta absoluta o relativa
 
     // Recorrer la lista de directorios
-    for (int i = firstSearchList(globalSearchList); i < lastSearchList(globalSearchList); i = nextSearchList(globalSearchList, i)) {
-        char *dir = getItemSearchList(globalSearchList, i);
+    for (int i = firstSearchList(SearchList); i < lastSearchList(SearchList); i = nextSearchList(SearchList, i)) {
+        char *dir = getItemSearchList(SearchList, i);
 
         if (dir == NULL)
             continue;

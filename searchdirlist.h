@@ -1,7 +1,3 @@
-//
-// Created by angela on 3/12/24.
-//
-
 #ifndef SEARCHDIRLIST_H
 #define SEARCHDIRLIST_H
 
@@ -25,7 +21,7 @@ typedef struct {
     char dirs[MAXDIRS][MAXPATH]; // Almacena los directorios
     int lastPosSearch;                  // Número de directorios en la lista
 } tSearchList;
-tSearchList globalSearchList;
+tSearchList SearchList;
 
 void createEmptySearchList(tSearchList *searchList);
 bool isEmptySearchList(tSearchList searchList);
