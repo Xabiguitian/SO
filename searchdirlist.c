@@ -71,6 +71,8 @@ void updateSearchList(tSearchList *searchList, char *dir) {
     }
 }
 
+tSearchList LibroDeBusqueda;
+
 // Función para encontrar el directorio de un ejecutable
 char *Ejecutable(char *s) {
     static char path[NAMEMAX];
@@ -84,8 +86,8 @@ char *Ejecutable(char *s) {
         return s; // Ruta absoluta o relativa
 
     // Recorrer la lista de directorios
-    for (int i = firstSearchList(SearchList); i < lastSearchList(SearchList); i = nextSearchList(SearchList, i)) {
-        char *dir = getItemSearchList(SearchList, i);
+    for (int i = firstSearchList(LibroDeBusqueda); i < lastSearchList(LibroDeBusqueda); i = nextSearchList(LibroDeBusqueda, i)) {
+        char *dir = getItemSearchList(LibroDeBusqueda, i);
 
         if (dir == NULL)
             continue;
