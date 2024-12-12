@@ -22,7 +22,7 @@ typedef struct tSearchList{
     int lastPosSearch;                  // Número de directorios en la lista
 } tSearchList;
 
-tSearchList LibroDeBusqueda;
+
 
 void createEmptySearchList(tSearchList *searchList);
 bool isEmptySearchList(tSearchList searchList);
@@ -34,7 +34,7 @@ void removeSearchList(tSearchList *searchList, char *dir);
 void removePositionSearchList(tSearchList *searchList, int position);
 char *getItemSearchList(tSearchList searchList, int position);
 void updateSearchList(tSearchList *searchList, char *dir);
-char *Ejecutable(char *s);
+char *Ejecutable(char *s, tSearchList LibroDeBusqueda);
 
 
 #endif //SEARCHDIRLIST_H

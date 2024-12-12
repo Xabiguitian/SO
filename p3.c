@@ -217,30 +217,19 @@ char *valor;
   }
 }
 
-int Execpve(char *tr[], char **NewEnv, int *pprio)
-{
-    char *p;
-    // Verificar que el primer argumento no sea NULL y que el ejecutable sea válido
-    if (tr[0] == NULL || (p = Ejecutable(tr[0])) == NULL) {
-        errno = EFAULT;
+int Execpve(char *tr[], char **NewEnv, int *pprio, tSearchList LibroDeBusqueda) {
+    char *p = Ejecutable(tr[0], LibroDeBusqueda);
+    if (p == NULL) {
+        fprintf(stderr, "Error: No se encontró el ejecutable '%s'.\n", tr[0]);
+        errno = ENOENT;
         return -1;
     }
 
-    // Si pprio no es NULL, intentar cambiar la prioridad del proceso
-    if (pprio != NULL) {
-        if (setpriority(PRIO_PROCESS, getpid(), *pprio) == -1) {
-            printf("Imposible cambiar prioridad: %s\n", strerror(errno));
-            return -1;
-        }
+    if (pprio != NULL && setpriority(PRIO_PROCESS, getpid(), *pprio) == -1) {
+        perror("Imposible cambiar prioridad");
+        return -1;
     }
 
-    // Mostrar los argumentos para depuración
-    printf("Ejecutando comando: %s\n", p);
-    for (int i = 0; tr[i] != NULL; i++) {
-        printf("Argumento[%d]: %s\n", i, tr[i]);
-    }
-
-    // Si NewEnv es NULL, usar execv. De lo contrario, usar execve.
     if (NewEnv == NULL) {
         return execv(p, tr);
     } else {
@@ -248,7 +237,7 @@ int Execpve(char *tr[], char **NewEnv, int *pprio)
     }
 }
 
-void execCmd(char *trozos[]) {
+void execCmd(char *trozos[], tSearchList LibroDeBusqueda) {
     char *args[MAXTROZOS];  // Arreglo para almacenar los argumentos
     int i = 0;
 
@@ -266,14 +255,14 @@ void execCmd(char *trozos[]) {
     args[i] = NULL;  // El último argumento debe ser NULL, como requiere execve
 
     // Ahora, llamamos a Execpve para ejecutar el comando
-    if (Execpve(args, NULL, NULL) == -1) {
+    if (Execpve(args, NULL, NULL, LibroDeBusqueda) == -1) {
         // Si Execpve devuelve -1, hubo un error al intentar ejecutar el comando
         perror("Error al ejecutar el comando");
     }
 }
 
 
-void execpri(char *tr[], char *input, tList *hist, tListM *M, tListProc *ListProc, char *envp[]) {
+void execpri(char *tr[], char *input, tList *hist, tListM *M, tListProc *ListProc, char *envp[], tSearchList LibroDeBusqueda) {
   if (tr[1] == NULL) {
     printf("Uso: execpri prio progspec\n");
   } else {
@@ -290,14 +279,14 @@ void execpri(char *tr[], char *input, tList *hist, tListM *M, tListProc *ListPro
         return;
       }
       tr2[n - 1] = NULL;
-      execCmd(tr);
+      execCmd(tr, LibroDeBusqueda);
     } else {
-      execCmd(tr);
+      execCmd(tr, LibroDeBusqueda);
     }
   }
 }
 
-void back(char *trozos[], tListProc *listProc) {
+void back(char *trozos[], tListProc *listProc, tSearchList LibroDeBusqueda) {
     pid_t pid;
     char *path;
 
@@ -306,14 +295,17 @@ void back(char *trozos[], tListProc *listProc) {
         return;
     }
 
-    path = Ejecutable(trozos[1]);
+    path = Ejecutable(trozos[1], LibroDeBusqueda);
 
     dataProc newProc;
     newProc.user = strdup(username(getuid()));
     newProc.cmd = strdup(trozos[1]);
-
     time_t currentTime = time(NULL);
     newProc.date = strdup(ctime(&currentTime));
+
+    if (path == NULL){
+      printf("path null\n");
+    }
 
     if (path == NULL || access(path, X_OK) == -1) {
         newProc.pid = 0; // PID ficticio
@@ -325,35 +317,28 @@ void back(char *trozos[], tListProc *listProc) {
     }
 
     if ((pid = fork()) == 0) {
-        // Proceso hijo: ejecutar el comando
         char *args[] = {path, NULL};
         execve(path, args, environ);
         perror("No ejecutado");
         exit(EXIT_FAILURE);
     } else if (pid > 0) {
-        // Proceso padre: esperar y registrar
         newProc.pid = pid;
         newProc.estado = ACTIVE;
-        newProc.end = 0; // Código de salida no definido aún
+        newProc.end = 0;
 
-        if (!insertItemProcList(newProc, listProc)) {
-            printf("Error: No se pudo añadir el proceso a la lista\n");
-        } else {
-            // Esperar al proceso y registrar salida
-            waitpid(pid, &newProc.end, 0);
-            newProc.estado = FINISHED;
+        insertItemProcList(newProc, listProc);
 
-            // Mostrar directamente la salida del comando
-            printf("\n");
-            fflush(stdout);
-        }
+        waitpid(pid, &newProc.end, 0);
+        newProc.estado = FINISHED;
+
         updateItemProcList(newProc, lastProcList(*listProc), listProc);
     } else {
         perror("Error al crear proceso en background");
     }
 }
 
-void backpri(char *trozos[], tListProc *listProc) {
+
+void backpri(char *trozos[], tListProc *listProc, tSearchList LibroDeBusqueda) {
     pid_t pid;
     char *path;
 
@@ -363,7 +348,7 @@ void backpri(char *trozos[], tListProc *listProc) {
     }
 
     int prioridad = atoi(trozos[1]);
-    path = Ejecutable(trozos[2]);
+    path = Ejecutable(trozos[2], LibroDeBusqueda);
 
     dataProc newProc;
     newProc.user = strdup(username(getuid()));
@@ -535,15 +520,22 @@ void deljobs(char *trozos[], tListProc *listProc) {
 	}
 }
 
-void search(char *trozos[], tSearchList *searchList) {
+void search(char *trozos[], tSearchList *searchList, tSearchList *LibroDeBusqueda) {
     if (trozos[1] == NULL) {
-        // Sin argumentos, imprimir la lista actual
         if (isEmptySearchList(*searchList)) {
             printf("Lista de búsqueda vacía.\n");
         } else {
             printf("Lista de búsqueda:\n");
-            for (int i = firstSearchList(*searchList); i < lastSearchList(*searchList); i = nextSearchList(*searchList, i)) {
-                printf("%s\n", getItemSearchList(*searchList, i));
+            for (int i = firstSearchList(*searchList);
+                 i < lastSearchList(*searchList);
+                 i = nextSearchList(*searchList, i)) {
+                char *item = getItemSearchList(*searchList, i);
+                if (item != NULL) {
+                    printf("%s\n", item);
+                    free(item); // Liberar la memoria asignada
+                } else {
+                    printf("Error al acceder al índice %d.\n", i);
+                }
             }
         }
         return;
@@ -580,8 +572,7 @@ void search(char *trozos[], tSearchList *searchList) {
                 }
                 dir = strtok(NULL, ":");
             }
-            // Sincronizar con la lista global
-            LibroDeBusqueda = *searchList;
+            memcpy(LibroDeBusqueda, searchList, sizeof(tSearchList));
             printf("Importados %d directorios en la ruta de búsqueda.\n", count);
         } else {
             printf("Error al acceder a PATH.\n");
@@ -590,6 +581,8 @@ void search(char *trozos[], tSearchList *searchList) {
         printf("Comando no reconocido para search.\n");
     }
 }
+
+
 
 void fg(char *trozos[], tListProc *listProc) {
     pid_t pid;

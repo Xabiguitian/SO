@@ -40,18 +40,18 @@ void showvar(char * trozos[], char *arg3[], char * env[]);
 void changevar(char *tr[], char * arg3[], char * env[]);
 void printVar(char *env[], char * name);
 void Cenviron(char *trozos[], char * arg3[], char *env[]);
-int Execpve(char *tr[], char **NewEnv, int * pprio);
-void execCmd(char *trozos[]);
-void execpri(char *tr[], char *input, tList *hist, tListM *M, tListProc *ListProc, char *environp[]);
-void back(char *trozos[], tListProc *listProc);
+int Execpve(char *tr[], char **NewEnv, int * pprio, tSearchList LibroDeBusqueda);
+void execCmd(char *trozos[], tSearchList LibroDeBusqueda);
+void execpri(char *tr[], char *input, tList *hist, tListM *M, tListProc *ListProc, char *environp[], tSearchList LibroDeBusqueda);
+void back(char *trozos[], tListProc *listProc, tSearchList LibroDeBusqueda);
 void listar(tListProc *listProc);
 void listjobs (char *trozos[], tListProc *list_proc);
 dataProc actualizar_estado(dataProc item, int opciones);
 void deljobs(char *trozos[], tListProc *listProc);
-void search(char *trozos[], tSearchList *searchList);
+void search(char *trozos[], tSearchList *searchList, tSearchList *LibroDeBusqueda);
 void fg(char *trozos[], tListProc *listProc);
 void fgpri(char *trozos[], tListProc *listProc);
-void backpri(char *trozos[], tListProc *listProc);
+void backpri(char *trozos[], tListProc *listProc, tSearchList LibroDeBusqueda);
 int cambiarPrioridad(char *val, pid_t pid);
 
 #endif //P3_H

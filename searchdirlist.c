@@ -24,15 +24,17 @@ int nextSearchList(tSearchList searchList, int pSearch){
 }
 
 bool insertSearchList(tSearchList *searchList, char *dir) {
-    if (searchList->lastPosSearch < MAXDIRS) {
-        strncpy(searchList->dirs[searchList->lastPosSearch], dir, MAXPATH - 1);
-        searchList->dirs[searchList->lastPosSearch][MAXPATH - 1] = '\0';
-        searchList->lastPosSearch++;
-        return true;
-    } else {
-        return false;
+    if (searchList->lastPosSearch >= MAXDIRS) {
+        return false; // Lista llena
     }
+
+    strncpy(searchList->dirs[searchList->lastPosSearch], dir, MAXPATH - 1);
+    searchList->dirs[searchList->lastPosSearch][MAXPATH - 1] = '\0';
+    searchList->lastPosSearch++;
+
+    return true;
 }
+
 
 void removeSearchList(tSearchList *searchList, char *dir) {
     for (int i = 0; i < searchList->lastPosSearch; i++) {
@@ -56,11 +58,20 @@ void removePositionSearchList(tSearchList *searchList, int position) {
 }
 
 char *getItemSearchList(tSearchList searchList, int position) {
-    if (position >= 0 && position < searchList.lastPosSearch) {
-        return searchList.dirs[position];
+    if (position < 0 || position >= searchList.lastPosSearch) {
+        return NULL; // Índice inválido
     }
-    return NULL;
+    // Crear un buffer dinámico para retornar una copia de la cadena
+    char *itemCopy = malloc(MAXPATH);
+    if (itemCopy == NULL) {
+        perror("Error al asignar memoria");
+        return NULL;
+    }
+    strncpy(itemCopy, searchList.dirs[position], MAXPATH - 1);
+    itemCopy[MAXPATH - 1] = '\0'; // Asegurar terminación nula
+    return itemCopy;
 }
+
 
 void updateSearchList(tSearchList *searchList, char *dir) {
     for (int i = 0; i < searchList->lastPosSearch; i++) {
@@ -71,31 +82,58 @@ void updateSearchList(tSearchList *searchList, char *dir) {
     }
 }
 
-tSearchList LibroDeBusqueda;
-
 // Función para encontrar el directorio de un ejecutable
-char *Ejecutable(char *s) {
-    static char path[MAXPATH];
+char *Ejecutable(char *s, tSearchList LibroDeBusqueda) {
+    static char path[NAMEMAX];
     struct stat st;
 
-    if (s == NULL)
+    if (s == NULL){
         return NULL;
+    }
 
     // Verificar si es una ruta absoluta o relativa
     if (s[0] == '/' || !strncmp(s, "./", 2) || !strncmp(s, "../", 3))
-        return s;
+        return s; // Ruta absoluta o relativa
 
-    // Buscar en la lista de búsqueda global
-    for (int i = firstSearchList(LibroDeBusqueda); i < lastSearchList(LibroDeBusqueda); i = nextSearchList(LibroDeBusqueda, i)) {
+    // Recorrer la lista de directorios
+    for (int i = firstSearchList(LibroDeBusqueda); 
+        i < lastSearchList(LibroDeBusqueda); 
+        i = nextSearchList(LibroDeBusqueda, i)) {
         char *dir = getItemSearchList(LibroDeBusqueda, i);
-        if (dir == NULL)
-            continue;
 
-        snprintf(path, MAXPATH, "%s/%s", dir, s);
-        if (stat(path, &st) == 0 && (st.st_mode & S_IXUSR)) {
-            return path;
+        if (dir == NULL){
+            continue;
         }
+
+        snprintf(path, NAMEMAX, "%s/%s", dir, s);
+            printf("hola\n");
+
+        if (lstat(path, &st) != -1 && (st.st_mode & S_IXUSR))
+            return path;
     }
 
-    return NULL;
+    return NULL; // No encontrado
 }
+
+
+/*char * Ejecutable (char *s, tSearchList searchlist)
+{
+        static char path[NAMEMAX];
+        struct stat st;
+        char *p;
+
+        if (s==NULL || (p=firstSearchList(searchlist))==NULL)
+                return s;
+        if (s[0]=='/' || !strncmp (s,"./",2) || !strncmp (s,"../",3))
+        return s;        //is an absolute pathname
+        
+        strncpy (path, p, NAMEMAX-1);strncat (path,"/",NAMEMAX-1); strncat(path,s,NAMEMAX-1);
+        if (lstat(path,&st)!=-1)
+                return path;
+        while ((p=nextSearchList(searchlist, *p))!=NULL){
+            strncpy (path, p, NAMEMAX-1);strncat (path,"/",NAMEMAX-1); strncat(path,s,NAMEMAX-1);
+            if (lstat(path,&st)!=-1)
+                return path;
+        }
+        return s;
+}*/

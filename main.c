@@ -3,6 +3,8 @@
 #include "p1.h"
 #include "file.h"
 #include "historial.h"
+#include "proclist.h"
+#include "searchdirlist.h"
 #include "p2.h"
 #include "p3.h"
 
@@ -24,7 +26,7 @@ void leerComando(char *command,char * trozos[]) {
 
 
 //FUNCIÓNES PARA PROCESAR LOS COMANDOS
-void processCommand(char *command,char *input, tList *historial, char * trozos[],int *fin,filelist *F, tListM * mL, tListProc *listProc, tSearchList *searchList,char *environp [], char *env[] ) {
+void processCommand(char *command,char *input, tList *historial, char * trozos[],int *fin,filelist *F, tListM * mL, tListProc *listProc, tSearchList *searchList,tSearchList LibroDeBusqueda,char *environp [], char *env[] ) {
     if(trozos[0]!=NULL){
         insertItemH(command,historial);
         if(strcmp(trozos[0], "authors")==0) {
@@ -116,19 +118,19 @@ void processCommand(char *command,char *input, tList *historial, char * trozos[]
         }else if(strcmp(trozos[0],"environ")==0) {
             Cenviron(trozos, environp, env);
         }else if(strcmp(trozos[0],"exec")==0) {
-            execCmd(trozos);
+            execCmd(trozos, LibroDeBusqueda);
         }else if(strcmp(trozos[0],"execpri")==0){
-            execpri(trozos,input,historial, mL, listProc, environp);
+            execpri(trozos,input,historial, mL, listProc, environp, LibroDeBusqueda);
         }else if(strcmp(trozos[0],"back")==0){
-            back(trozos, listProc);
+            back(trozos, listProc, LibroDeBusqueda);
         }else if(strcmp(trozos[0],"backpri")==0){
-            backpri(trozos, listProc);
+            backpri(trozos, listProc, LibroDeBusqueda);
         }else if(strcmp(trozos[0],"listjobs")==0){
             listjobs(trozos, listProc);
         }else if(strcmp(trozos[0],"deljobs")==0){
             deljobs(trozos, listProc);
         }else if(strcmp(trozos[0],"search")==0){
-            search(trozos, searchList);
+            search(trozos, searchList, &LibroDeBusqueda);
         }else if(strcmp(trozos[0],"fg")==0){
             fg(trozos, listProc);
         }else if(strcmp(trozos[0],"fgpri")==0){
@@ -153,6 +155,7 @@ int main(int argc, char *argv[], char *environp[]) {
     tListM mL;
     tListProc listProc;
     tSearchList searchList;
+    tSearchList LibroDeBusqueda;
     int fin=1;
 
 
@@ -160,6 +163,9 @@ int main(int argc, char *argv[], char *environp[]) {
     createEmptyListF(&F);
     createEmptyMemList(&mL);
     createEmptyProcList(&listProc);
+    createEmptySearchList(&searchList);
+    createEmptySearchList(&LibroDeBusqueda);
+
 
     añadirFicheros(0, "entrada estandar", O_RDWR, &F);
     añadirFicheros(1, "salida estandar", O_RDWR, &F);
@@ -168,7 +174,7 @@ int main(int argc, char *argv[], char *environp[]) {
     do {
         imprimirPrompt();
         leerComando(command,trozos);
-        processCommand(command, input,&historial, trozos,&fin ,&F,&mL,&listProc,&searchList,environp, environ);
+        processCommand(command, input,&historial, trozos,&fin ,&F,&mL,&listProc,&searchList, LibroDeBusqueda,environp, environ);
     }while(fin==1);
     printf("\n");
 }
