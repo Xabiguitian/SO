@@ -24,7 +24,7 @@ void leerComando(char *command,char * trozos[]) {
 
 
 //FUNCIÓNES PARA PROCESAR LOS COMANDOS
-void processCommand(char *command,char *input, tList *historial, char * trozos[],int *fin,filelist *F, tListM * mL, tListProc *listProc ,char *environp [], char *env[] ) {
+void processCommand(char *command,char *input, tList *historial, char * trozos[],int *fin,filelist *F, tListM * mL, tListProc *listProc, tSearchList *searchList,char *environp [], char *env[] ) {
     if(trozos[0]!=NULL){
         insertItemH(command,historial);
         if(strcmp(trozos[0], "authors")==0) {
@@ -128,7 +128,7 @@ void processCommand(char *command,char *input, tList *historial, char * trozos[]
         }else if(strcmp(trozos[0],"deljobs")==0){
             deljobs(trozos, listProc);
         }else if(strcmp(trozos[0],"search")==0){
-            //search(trozos, searchList);
+            search(trozos, searchList);
         }else if(strcmp(trozos[0],"fg")==0){
             fg(trozos, listProc);
         }else if(strcmp(trozos[0],"fgpri")==0){
@@ -152,6 +152,7 @@ int main(int argc, char *argv[], char *environp[]) {
     filelist F;
     tListM mL;
     tListProc listProc;
+    tSearchList searchList;
     int fin=1;
 
 
@@ -167,7 +168,7 @@ int main(int argc, char *argv[], char *environp[]) {
     do {
         imprimirPrompt();
         leerComando(command,trozos);
-        processCommand(command, input,&historial, trozos,&fin ,&F,&mL,&listProc,environp, environ);
+        processCommand(command, input,&historial, trozos,&fin ,&F,&mL,&listProc,&searchList,environp, environ);
     }while(fin==1);
     printf("\n");
 }

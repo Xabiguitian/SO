@@ -263,8 +263,18 @@ void execpri(char *tr[], char *input, tList *hist, tListM *M, tListProc *ListPro
 void back(char *trozos[], tListProc *listProc) {
     pid_t pid;
 
+    if (trozos[1] == NULL) {
+        printf("Uso: back comando args\n");
+        return;
+    }
+
+    char *path = Ejecutable(trozos[1]);
+    if (path == NULL) {
+        printf("No ejecutado: Comando no encontrado\n");
+        return;
+    }
+
     if ((pid = fork()) == 0) {
-        char *path = Ejecutable(trozos[1]);
         int fd = open("/dev/null", O_WRONLY);
         if (fd != -1) {
             dup2(fd, STDOUT_FILENO);
@@ -272,7 +282,8 @@ void back(char *trozos[], tListProc *listProc) {
             close(fd);
         }
 
-        if (execvp(path, &trozos[1]) == -1) {
+        char *args[] = {path, NULL};
+        if (execve(path, args, environ) == -1) {
             perror("No ejecutado");
             exit(EXIT_FAILURE);
         }
@@ -302,6 +313,12 @@ void backpri(char *trozos[], tListProc *listProc) {
     }
 
     int prioridad = atoi(trozos[1]);
+    char *path = Ejecutable(trozos[2]);
+    if (path == NULL) {
+        printf("No ejecutado: Comando no encontrado\n");
+        return;
+    }
+
     pid_t pid;
 
     if ((pid = fork()) == 0) {
@@ -310,7 +327,6 @@ void backpri(char *trozos[], tListProc *listProc) {
             exit(EXIT_FAILURE);
         }
 
-        char *path = Ejecutable(trozos[2]);
         int fd = open("/dev/null", O_WRONLY);
         if (fd != -1) {
             dup2(fd, STDOUT_FILENO);
@@ -318,7 +334,8 @@ void backpri(char *trozos[], tListProc *listProc) {
             close(fd);
         }
 
-        if (execvp(path, &trozos[2]) == -1) {
+        char *args[] = {path, NULL};
+        if (execve(path, args, environ) == -1) {
             perror("No ejecutado");
             exit(EXIT_FAILURE);
         }
@@ -415,7 +432,6 @@ dataProc actualizar_estado(dataProc item, int opciones){
 	}
 	return item;
 }
-
 
 void deljobs(char *trozos[], tListProc *listProc) {
   if(trozos[1]==NULL){
