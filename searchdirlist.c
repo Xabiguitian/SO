@@ -82,7 +82,6 @@ void updateSearchList(tSearchList *searchList, char *dir) {
     }
 }
 
-// Función para encontrar el directorio de un ejecutable
 char *Ejecutable(char *s, tSearchList LibroDeBusqueda) {
     static char path[NAMEMAX];
     struct stat st;
@@ -91,11 +90,9 @@ char *Ejecutable(char *s, tSearchList LibroDeBusqueda) {
         return NULL;
     }
 
-    // Verificar si es una ruta absoluta o relativa
     if (s[0] == '/' || !strncmp(s, "./", 2) || !strncmp(s, "../", 3))
-        return s; // Ruta absoluta o relativa
-
-    // Recorrer la lista de directorios
+        return s;
+        
     for (int i = firstSearchList(LibroDeBusqueda); 
         i < lastSearchList(LibroDeBusqueda); 
         i = nextSearchList(LibroDeBusqueda, i)) {
@@ -106,34 +103,10 @@ char *Ejecutable(char *s, tSearchList LibroDeBusqueda) {
         }
 
         snprintf(path, NAMEMAX, "%s/%s", dir, s);
-            printf("hola\n");
 
         if (lstat(path, &st) != -1 && (st.st_mode & S_IXUSR))
             return path;
     }
 
-    return NULL; // No encontrado
+    return NULL;
 }
-
-
-/*char * Ejecutable (char *s, tSearchList searchlist)
-{
-        static char path[NAMEMAX];
-        struct stat st;
-        char *p;
-
-        if (s==NULL || (p=firstSearchList(searchlist))==NULL)
-                return s;
-        if (s[0]=='/' || !strncmp (s,"./",2) || !strncmp (s,"../",3))
-        return s;        //is an absolute pathname
-        
-        strncpy (path, p, NAMEMAX-1);strncat (path,"/",NAMEMAX-1); strncat(path,s,NAMEMAX-1);
-        if (lstat(path,&st)!=-1)
-                return path;
-        while ((p=nextSearchList(searchlist, *p))!=NULL){
-            strncpy (path, p, NAMEMAX-1);strncat (path,"/",NAMEMAX-1); strncat(path,s,NAMEMAX-1);
-            if (lstat(path,&st)!=-1)
-                return path;
-        }
-        return s;
-}*/

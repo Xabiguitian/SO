@@ -43,7 +43,7 @@ void Cenviron(char *trozos[], char * arg3[], char *env[]);
 int Execpve(char *tr[], char **NewEnv, int * pprio, tSearchList LibroDeBusqueda);
 void execCmd(char *trozos[], tSearchList LibroDeBusqueda);
 void execpri(char *tr[], char *input, tList *hist, tListM *M, tListProc *ListProc, char *environp[], tSearchList LibroDeBusqueda);
-void back(char *trozos[], tListProc *listProc, tSearchList LibroDeBusqueda);
+void back(char *trozos[], tListProc *listProc, tSearchList *LibroDeBusqueda);
 void listar(tListProc *listProc);
 void listjobs (char *trozos[], tListProc *list_proc);
 dataProc actualizar_estado(dataProc item, int opciones);
