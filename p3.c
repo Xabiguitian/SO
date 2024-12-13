@@ -110,6 +110,7 @@ int CambiarVariable(char * var, char * newVar, char * valor, char *e[]) /*cambia
   strcat(aux,"=");
   strcat(aux,valor);
   e[pos]=aux;
+  free(aux);
   return (pos);
 }
 
@@ -189,6 +190,7 @@ int cont;
       printf("Uso: changevar [-a|-e|-p] var valor\n");
       return;
     }
+    free(var);
   }else
     printf("Uso: changevar [-a|-e|-p] var valor\n");
 }
