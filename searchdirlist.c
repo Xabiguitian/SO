@@ -58,20 +58,15 @@ void removePositionSearchList(tSearchList *searchList, int position) {
 }
 
 char *getItemSearchList(tSearchList searchList, int position) {
+    static char item[MAXPATH]; // Buffer estático
     if (position < 0 || position >= searchList.lastPosSearch) {
         return NULL; // Índice inválido
     }
-    // Crear un buffer dinámico para retornar una copia de la cadena
-    char *itemCopy = malloc(MAXPATH);
-    if (itemCopy == NULL) {
-        perror("Error al asignar memoria");
-        return NULL;
-    }
-    strncpy(itemCopy, searchList.dirs[position], MAXPATH - 1);
-    itemCopy[MAXPATH - 1] = '\0'; // Asegurar terminación nula
-    return itemCopy;
-    free(itemCopy);
+    strncpy(item, searchList.dirs[position], MAXPATH - 1);
+    item[MAXPATH - 1] = '\0'; // Asegurar terminación nula
+    return item;
 }
+
 
 void updateSearchList(tSearchList *searchList, char *dir) {
     for (int i = 0; i < searchList->lastPosSearch; i++) {
