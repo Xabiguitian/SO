@@ -70,8 +70,8 @@ char *getItemSearchList(tSearchList searchList, int position) {
     strncpy(itemCopy, searchList.dirs[position], MAXPATH - 1);
     itemCopy[MAXPATH - 1] = '\0'; // Asegurar terminación nula
     return itemCopy;
+    free(itemCopy);
 }
-
 
 void updateSearchList(tSearchList *searchList, char *dir) {
     for (int i = 0; i < searchList->lastPosSearch; i++) {

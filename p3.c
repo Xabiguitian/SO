@@ -152,6 +152,7 @@ void subsvar(char *trozos[], char *arg3[], char *env[]) {
       free(var);
       printf("Uso: subsvar [-a|-e] var1 var2 valor\n");
     }
+    free(var);
   }else
     printf("Uso: subsvar [-a|-e] var1 var2 valor\n");
 }
