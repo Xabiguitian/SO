@@ -495,41 +495,45 @@ dataProc actualizar_estado(dataProc item, int opciones){
 	return item;
 }
 
-void deljobs(char *trozos[], tListProc *listProc) {
-  if(trozos[1]==NULL){
-		return;
-	} else if(strcmp(trozos[1], "-term")==0 && trozos[2]==NULL){
-    int pos;
-    dataProc item;
-    if(isEmptyProcList(*listProc)){
-      return;
-    } else {
-      for(pos = firstProcList(*listProc); pos<=lastProcList(*listProc); pos++){
-        item = getItemProcList(pos, *listProc);
-        if(item.estado==FINISHED){
-          deleteItemProcList(pos, listProc);
+void deljobs(char * trozos[], tListProc * ListProc) {
+    if(trozos[1] == NULL) {
+        return;
+    } else if(!strcmp(trozos[1], "-term")) {
+
+        if(isEmptyProcList(*ListProc))
+            return;
+        else {
+            int pos;
+            dataProc item;
+            for(pos = firstProcList(*ListProc); pos <= lastProcList(*ListProc); pos++ ){
+                item = getItemProcList(pos, *ListProc);
+                item = actualizar_estado(item, 1);
+                updateItemProcList(item, pos, ListProc);
+
+                if(item.estado == FINISHED){
+                  deleteItemProcList(pos, ListProc);
+                }
+              }
         }
-      }
-    }
-		return;
-	} else if (strcmp(trozos[1], "-sig")==0 && trozos[2]==NULL){
-		int pos;
-    dataProc item;
-    if(isEmptyProcList(*listProc)){
-      return;
-    } else {
-      for(pos = firstProcList(*listProc); pos<=lastProcList(*listProc); pos++){
-        item = getItemProcList(pos, *listProc);
-        if(item.estado==SIGNALED){
-          deleteItemProcList(pos, listProc);
+        return;
+    } else if(!strcmp(trozos[1], "-sig")) {
+        if(isEmptyProcList(*ListProc))
+            return;
+        else {
+            int pos;
+            dataProc item;
+            for(pos = firstProcList(*ListProc); pos <= lastProcList(*ListProc); pos++ ){
+                item = getItemProcList(pos, *ListProc);
+                item = actualizar_estado(item, 1);
+                updateItemProcList(item, pos, ListProc);
+
+                if(item.estado == SIGNALED){
+                  deleteItemProcList(pos, ListProc);
+                }
+              }
         }
-      }
+        return;
     }
-		return;
-	} else {
-		listar(listProc);
-		return;
-	}
 }
 
 void search(char *trozos[], tSearchList *searchList) {
