@@ -118,9 +118,9 @@ void processCommand(char *command,char *input, tList *historial, char * trozos[]
         }else if(strcmp(trozos[0],"environ")==0) {
             Cenviron(trozos, environp, env);
         }else if(strcmp(trozos[0],"exec")==0) {
-            execCmd(trozos, *LibroDeBusqueda);
+            exec(trozos, searchList);
         }else if(strcmp(trozos[0],"execpri")==0){
-            execpri(trozos,input,historial, mL, listProc, environp, *LibroDeBusqueda);
+            execpri(trozos, searchList);
         }else if(strcmp(trozos[0],"back")==0){
             back(trozos, listProc, searchList);
         }else if(strcmp(trozos[0],"backpri")==0){

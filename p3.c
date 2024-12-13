@@ -46,7 +46,7 @@ void cmd_setUid(char *trozos[]) {
   if (setuid(uid) == -1) {
     perror("Imposible cambiar credencial");
   } else {
-    printf("Credencial efectiva cambiada a UID: %d\n", uid);
+    return;
   }
 }
 
@@ -217,73 +217,80 @@ char *valor;
   }
 }
 
-int Execpve(char *tr[], char **NewEnv, int *pprio, tSearchList LibroDeBusqueda) {
-    char *p = Ejecutable(tr[0], LibroDeBusqueda);
-    if (p == NULL) {
-        fprintf(stderr, "Error: No se encontró el ejecutable '%s'.\n", tr[0]);
-        errno = ENOENT;
-        return -1;
+void exec(char *trozos[], tSearchList *LibroDeBusqueda) {
+    char *path;
+
+    if (trozos[1] == NULL) {
+        printf("Uso: exec comando args\n");
+        return;
     }
 
-    if (pprio != NULL && setpriority(PRIO_PROCESS, getpid(), *pprio) == -1) {
-        perror("Imposible cambiar prioridad");
-        return -1;
+    // Buscar el ejecutable en la lista de búsqueda
+    path = Ejecutable(trozos[1], *LibroDeBusqueda);
+
+    if (path == NULL || access(path, X_OK) == -1) {
+        printf("No ejecutado: No such file or directory\n");
+        return;
     }
 
-    if (NewEnv == NULL) {
-        return execv(p, tr);
-    } else {
-        return execve(p, tr, NewEnv);
-    }
-}
-
-void execCmd(char *trozos[], tSearchList LibroDeBusqueda) {
-    char *args[MAXTROZOS];  // Arreglo para almacenar los argumentos
+    char *args[MAXTROZOS];
     int i = 0;
 
-    // Asegúrate de que el primer argumento no sea NULL
-    if (trozos[0] == NULL) {
-        printf("Error: Comando no válido.\n");
-        return;
-    }
-
-    // Copiar los trozos del comando en el arreglo de argumentos
-    while (trozos[i] != NULL) {
-        args[i] = trozos[i];
+    // Copiar los argumentos del comando
+    while (trozos[i + 1] != NULL) { // Saltar "exec"
+        args[i] = trozos[i + 1];
         i++;
     }
-    args[i] = NULL;  // El último argumento debe ser NULL, como requiere execve
+    args[i] = NULL; // Terminar el arreglo con NULL
 
-    // Ahora, llamamos a Execpve para ejecutar el comando
-    if (Execpve(args, NULL, NULL, LibroDeBusqueda) == -1) {
-        // Si Execpve devuelve -1, hubo un error al intentar ejecutar el comando
-        perror("Error al ejecutar el comando");
-    }
+    // Reemplazar el proceso actual por el comando especificado
+    execve(path, args, environ);
+
+    // Si execve falla, se imprime un error y se retorna
+    perror("No ejecutado");
 }
 
 
-void execpri(char *tr[], char *input, tList *hist, tListM *M, tListProc *ListProc, char *envp[], tSearchList LibroDeBusqueda) {
-  if (tr[1] == NULL) {
-    printf("Uso: execpri prio progspec\n");
-  } else {
-    int cnt = 0;
-    char *tr2[MAXTROZOS];
-    int n = TrocearCadena(input, tr2);
+void execpri(char *trozos[], tSearchList *LibroDeBusqueda) {
+    char *path;
 
-    while (tr[cnt + 1] != NULL)
-      cnt++;
-
-    if (strstr(tr[n - 1], "@") != NULL) {
-      if (setpriority(PRIO_PROCESS, getpid(), atoi(tr[cnt] + 1)) == -1) {
-        perror("Error al cambiar la prioridad");
+    if (trozos[1] == NULL || trozos[2] == NULL) {
+        printf("Uso: execpri prioridad comando args\n");
         return;
-      }
-      tr2[n - 1] = NULL;
-      execCmd(tr, LibroDeBusqueda);
-    } else {
-      execCmd(tr, LibroDeBusqueda);
     }
-  }
+
+    // Obtener la prioridad del comando
+    int prioridad = atoi(trozos[1]);
+
+    // Buscar el ejecutable en la lista de búsqueda
+    path = Ejecutable(trozos[2], *LibroDeBusqueda);
+
+    if (path == NULL || access(path, X_OK) == -1) {
+        printf("No ejecutado: No such file or directory\n");
+        return;
+    }
+
+    char *args[MAXTROZOS];
+    int i = 0;
+
+    // Copiar los argumentos del comando
+    while (trozos[i + 2] != NULL) { // Saltar "execpri" y la prioridad
+        args[i] = trozos[i + 2];
+        i++;
+    }
+    args[i] = NULL; // Terminar el arreglo con NULL
+
+    // Establecer la prioridad del proceso actual
+    if (setpriority(PRIO_PROCESS, getpid(), prioridad) == -1) {
+        perror("Error al establecer la prioridad");
+        return;
+    }
+
+    // Reemplazar el proceso actual por el comando especificado
+    execve(path, args, environ);
+
+    // Si execve falla, se imprime un error
+    perror("No ejecutado");
 }
 
 void back(char *trozos[], tListProc *listProc, tSearchList *LibroDeBusqueda) {
