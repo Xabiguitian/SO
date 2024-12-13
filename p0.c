@@ -187,7 +187,31 @@ void help(tList *historial, char * trozos[]){
       printf("Vuelca el contenido de cont bytes de memoria en la dirección addr a la pantalla. Vuelca códigos hexadecimales y, para caracteres imprimibles, el carácter asociado\n");
   }else if(strcmp(trozos[1], "memfill")==0){
       printf("dumps llena la memoria con el carácter ch, comenzando en la dirección addr, para con tbytes\n");
-  }else
+  }else if(strcmp(trozos[1], "getuid")==0){
+      printf("getuid visualiza las credenciales del proceso (reales y efectivas)\n");
+  }else if(strcmp(trozos[1], "setuid")==0){
+      printf("setuid [-l] id establece la credencial efectiva del proceso (-l para iniciar sesión)\n");
+  }else if(strcmp(trozos[1], "showvar")==0){
+    printf("showvar v1 v2 ... muestra el valor y la dirección de las variables de entorno v1 v2 ....El acceso debe realizarse mediante el tercer argumento de main(), la función de entorno y la función de biblioteca getenv\n");
+  }else if(strcmp(trozos[1], "changevar")==0){
+    printf("changevar [-a|-e|-p] var val cambia el valor de una variable de entorno. Se puede crear una nueva variable SÓLO al acceder con putenv (-p)\n");
+  }else if(strcmp(trozos[1], "subsvar")==0){
+    printf("subsvar [-a|-e] v1 v2 val changes one environmet (v1) variable for other (v2 with value val)\n");
+  }else if(strcmp(trozos[1], "environ")==0){
+    printf("environ [-environ|-addr] shows the process environment\n");
+  }else if(strcmp(trozos[1], "fork")==0){
+    printf("fork the shell does the fork system call and waits for its child to end\n");
+  }else if(strcmp(trozos[1], "environ")==0){
+    printf("environ [-environ|-addr] shows the process environment\n");
+  }else if(strcmp(trozos[1],"search")==0){
+    printf("search -add dir-del dir-clear-path\nshows or modifies the search list (the list of directories where the shell\nlooks for executables)\nadds a dirrectory to the search lis\ndeletes a directory from the search list\nclears the search list imports de directories in the PATH to the seach list")
+  }else if(strcmp(trozos[1],"exec")==0){
+    printf("exec progspec ejecuta, sin crear un nuevo proceso, el programa descrito por progspec (ver explicación a continuación).");
+  }else if(strcmp(trozos[1], "execpri")){
+    printf("execpri prio progspec executes, without creating a new process and with its priority changed to prio, a program described by progspec (see explanation below).\n")
+  }else if(strcmp(trozos[1], "fg")){
+    printf("fg progspec creates a process tha executes in the foreground the program described by progspec (see explanation below). \n");
+  }else{
     printf("No se reconoce el comando.\n");
 }
 

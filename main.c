@@ -26,7 +26,7 @@ void leerComando(char *command,char * trozos[]) {
 
 
 //FUNCIÓNES PARA PROCESAR LOS COMANDOS
-void processCommand(char *command,char *input, tList *historial, char * trozos[],int *fin,filelist *F, tListM * mL, tListProc *listProc, tSearchList *searchList,tSearchList *LibroDeBusqueda,char *environp [], char *env[] ) {
+void processCommand(char *command,char *input, tList *historial, char * trozos[],int *fin,filelist *F, tListM * mL, tListProc *listProc, tSearchList *searchList,char *environp [], char *env[] ) {
     if(trozos[0]!=NULL){
         insertItemH(command,historial);
         if(strcmp(trozos[0], "authors")==0) {
@@ -50,9 +50,8 @@ void processCommand(char *command,char *input, tList *historial, char * trozos[]
         }else if(strcmp(trozos[0],"help")==0) {
             help(historial, trozos);
         }else if(strcmp(trozos[0],"quit")==0||strcmp(trozos[0],"exit")==0||strcmp(trozos[0],"bye")==0) {
-            deleteListH(historial);
             freeMemList(mL);
-            deleteMemList(mL);
+            deleteListH(historial);
             EliminarFicheros(F);
             deleteProcList(listProc);
             *fin=0;
@@ -155,7 +154,6 @@ int main(int argc, char *argv[], char *environp[]) {
     tListM mL;
     tListProc listProc;
     tSearchList searchList;
-    tSearchList LibroDeBusqueda;
     int fin=1;
 
 
@@ -164,7 +162,6 @@ int main(int argc, char *argv[], char *environp[]) {
     createEmptyMemList(&mL);
     createEmptyProcList(&listProc);
     createEmptySearchList(&searchList);
-    createEmptySearchList(&LibroDeBusqueda);
 
 
     añadirFicheros(0, "entrada estandar", O_RDWR, &F);
@@ -174,7 +171,7 @@ int main(int argc, char *argv[], char *environp[]) {
     do {
         imprimirPrompt();
         leerComando(command,trozos);
-        processCommand(command, input,&historial, trozos,&fin ,&F,&mL,&listProc,&searchList, &LibroDeBusqueda,environp, environ);
+        processCommand(command, input,&historial, trozos,&fin ,&F,&mL,&listProc,&searchList,environp, environ);
     }while(fin==1);
     printf("\n");
 }
