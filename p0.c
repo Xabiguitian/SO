@@ -204,15 +204,16 @@ void help(tList *historial, char * trozos[]){
   }else if(strcmp(trozos[1], "environ")==0){
     printf("environ [-environ|-addr] shows the process environment\n");
   }else if(strcmp(trozos[1],"search")==0){
-    printf("search -add dir-del dir-clear-path\nshows or modifies the search list (the list of directories where the shell\nlooks for executables)\nadds a dirrectory to the search lis\ndeletes a directory from the search list\nclears the search list imports de directories in the PATH to the seach list")
+    printf("search -add dir-del dir-clear-path\nshows or modifies the search list (the list of directories where the shell\nlooks for executables)\nadds a dirrectory to the search lis\ndeletes a directory from the search list\nclears the search list imports de directories in the PATH to the seach list");
   }else if(strcmp(trozos[1],"exec")==0){
     printf("exec progspec ejecuta, sin crear un nuevo proceso, el programa descrito por progspec (ver explicación a continuación).");
   }else if(strcmp(trozos[1], "execpri")){
-    printf("execpri prio progspec executes, without creating a new process and with its priority changed to prio, a program described by progspec (see explanation below).\n")
+    printf("execpri prio progspec executes, without creating a new process and with its priority changed to prio, a program described by progspec (see explanation below).\n");
   }else if(strcmp(trozos[1], "fg")){
     printf("fg progspec creates a process tha executes in the foreground the program described by progspec (see explanation below). \n");
   }else{
     printf("No se reconoce el comando.\n");
+  }
 }
 
 
