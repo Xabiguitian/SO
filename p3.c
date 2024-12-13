@@ -343,7 +343,7 @@ void back(char *trozos[], tListProc *listProc, tSearchList *LibroDeBusqueda) {
 }
 
 
-void backpri(char *trozos[], tListProc *listProc, tSearchList LibroDeBusqueda) {
+void backpri(char *trozos[], tListProc *listProc, tSearchList *LibroDeBusqueda) {
     pid_t pid;
     char *path;
 
@@ -353,7 +353,7 @@ void backpri(char *trozos[], tListProc *listProc, tSearchList LibroDeBusqueda) {
     }
 
     int prioridad = atoi(trozos[1]);
-    path = Ejecutable(trozos[2], LibroDeBusqueda);
+    path = Ejecutable(trozos[2], *LibroDeBusqueda);
 
     dataProc newProc;
     newProc.user = strdup(username(getuid()));
@@ -580,68 +580,99 @@ void search(char *trozos[], tSearchList *searchList) {
 }
 
 
-
-void fg(char *trozos[], tListProc *listProc) {
+void fg(char *trozos[], tListProc *listProc, tSearchList *LibroDeBusqueda) {
     pid_t pid;
+    char *path;
 
     if (trozos[1] == NULL) {
-        printf("Uso: fg PID\n");
+        printf("Uso: fg comando args\n");
         return;
     }
 
-    pid = (pid_t)atoi(trozos[1]);
-    int i;
-    dataProc proc;
+    // Buscar el ejecutable en la lista de búsqueda
+    path = Ejecutable(trozos[1], *LibroDeBusqueda);
 
-    // Buscar el proceso en la lista de procesos
-    for (i = firstProcList(*listProc); i <= lastProcList(*listProc); i++) {
-        proc = getItemProcList(i, *listProc);
-        if (proc.pid == pid) {
-            // Esperar al proceso en foreground
-            if (waitpid(pid, NULL, 0) == -1) {
-                perror("Error esperando al proceso");
-            } else {
-                printf("Proceso %d ejecutado en foreground completado.\n", pid);
-                deleteItemProcList(i, listProc);
-            }
-            return;
-        }
+    if (path == NULL || access(path, X_OK) == -1) {
+        printf("No ejecutado: No such file or directory\n");
+        return;
     }
 
-    printf("Error: No se encontró el proceso con PID %d en la lista de procesos en background.\n", pid);
+    if ((pid = fork()) == 0) {
+        // Proceso hijo: ejecutar el comando en primer plano
+        char *args[MAXTROZOS];
+        int i = 0;
+
+        // Copiar los argumentos del comando
+        while (trozos[i + 1] != NULL) {
+            args[i] = trozos[i + 1]; // Saltar el primer elemento ("fg")
+            i++;
+        }
+        args[i] = NULL; // Terminar el arreglo con NULL
+
+        // Ejecutar el comando
+        execve(path, args, environ);
+        perror("No ejecutado");
+        exit(EXIT_FAILURE);
+    } else if (pid > 0) {
+        // Proceso padre: esperar al proceso en primer plano
+        if (waitpid(pid, NULL, 0) == -1) {
+            perror("Error esperando al proceso");
+        }
+    } else {
+        perror("Error al crear el proceso en primer plano");
+    }
 }
 
-void fgpri(char *trozos[], tListProc *listProc) {
+
+void fgpri(char *trozos[], tListProc *listProc, tSearchList *LibroDeBusqueda) {
+    pid_t pid;
+    char *path;
+
     if (trozos[1] == NULL || trozos[2] == NULL) {
-        printf("Uso: fgpri prio PID\n");
+        printf("Uso: fgpri prioridad comando args\n");
         return;
     }
 
+    // Obtener la prioridad del comando
     int prioridad = atoi(trozos[1]);
-    pid_t pid = (pid_t)atoi(trozos[2]);
-    int i;
-    dataProc proc;
 
-    for (i = firstProcList(*listProc); i <= lastProcList(*listProc); i++) {
-        proc = getItemProcList(i, *listProc);
-        if (proc.pid == pid) {
-            printf("Cambiando prioridad del proceso %d a %d...\n", pid, prioridad);
-            if (setpriority(PRIO_PROCESS, pid, prioridad) == -1) {
-                perror("Error al cambiar la prioridad");
-                return;
-            }
-            printf("Trayendo proceso %d al foreground...\n", pid);
-            if (waitpid(pid, NULL, 0) == -1) {
-                perror("Error esperando al proceso");
-            } else {
-                printf("Proceso %d completado.\n", pid);
-                deleteItemProcList(i, listProc);
-            }
-            return;
-        }
+    // Buscar el ejecutable en la lista de búsqueda
+    path = Ejecutable(trozos[2], *LibroDeBusqueda);
+
+    if (path == NULL || access(path, X_OK) == -1) {
+        printf("No ejecutado: No such file or directory\n");
+        return;
     }
 
-    printf("Error: No se encontró el proceso con PID %d.\n", pid);
+    if ((pid = fork()) == 0) {
+        // Proceso hijo: establecer la prioridad y ejecutar el comando
+        if (setpriority(PRIO_PROCESS, getpid(), prioridad) == -1) {
+            perror("Error al establecer la prioridad");
+            exit(EXIT_FAILURE);
+        }
+
+        char *args[MAXTROZOS];
+        int i = 0;
+
+        // Copiar los argumentos del comando
+        while (trozos[i + 2] != NULL) { // Saltar "fgpri" y la prioridad
+            args[i] = trozos[i + 2];
+            i++;
+        }
+        args[i] = NULL; // Terminar el arreglo con NULL
+
+        // Ejecutar el comando
+        execve(path, args, environ);
+        perror("No ejecutado");
+        exit(EXIT_FAILURE);
+    } else if (pid > 0) {
+        // Proceso padre: esperar al proceso en primer plano
+        if (waitpid(pid, NULL, 0) == -1) {
+            perror("Error esperando al proceso");
+        }
+    } else {
+        perror("Error al crear el proceso en primer plano");
+    }
 }
 
 int cambiarPrioridad(char *val, pid_t pid) {
