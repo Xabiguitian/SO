@@ -48,7 +48,7 @@ void listar(tListProc *listProc);
 void listjobs (char *trozos[], tListProc *list_proc);
 dataProc actualizar_estado(dataProc item, int opciones);
 void deljobs(char *trozos[], tListProc *listProc);
-void search(char *trozos[], tSearchList *searchList, tSearchList *LibroDeBusqueda);
+void search(char *trozos[], tSearchList *searchList);
 void fg(char *trozos[], tListProc *listProc);
 void fgpri(char *trozos[], tListProc *listProc);
 void backpri(char *trozos[], tListProc *listProc, tSearchList LibroDeBusqueda);

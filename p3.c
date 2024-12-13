@@ -525,7 +525,7 @@ void deljobs(char *trozos[], tListProc *listProc) {
 	}
 }
 
-void search(char *trozos[], tSearchList *searchList, tSearchList *LibroDeBusqueda) {
+void search(char *trozos[], tSearchList *searchList) {
     if (trozos[1] == NULL) {
         // Sin argumentos, imprimir la lista actual
         if (isEmptySearchList(*searchList)) {
@@ -570,8 +570,6 @@ void search(char *trozos[], tSearchList *searchList, tSearchList *LibroDeBusqued
                 }
                 dir = strtok(NULL, ":");
             }
-            // Sincronizar con la lista global
-            LibroDeBusqueda = searchList;
             printf("Importados %d directorios en la ruta de búsqueda.\n", count);
         } else {
             printf("Error al acceder a PATH.\n");

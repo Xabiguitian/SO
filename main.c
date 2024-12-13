@@ -130,7 +130,7 @@ void processCommand(char *command,char *input, tList *historial, char * trozos[]
         }else if(strcmp(trozos[0],"deljobs")==0){
             deljobs(trozos, listProc);
         }else if(strcmp(trozos[0],"search")==0){
-            search(trozos, searchList, LibroDeBusqueda);
+            search(trozos, searchList);
         }else if(strcmp(trozos[0],"fg")==0){
             fg(trozos, listProc);
         }else if(strcmp(trozos[0],"fgpri")==0){
