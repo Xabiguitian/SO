@@ -135,7 +135,7 @@ void processCommand(char *command,char *input, tList *historial, char * trozos[]
         }else if(strcmp(trozos[0],"fgpri")==0){
             fgpri(trozos, listProc, searchList);
         }else{
-            printf("No se reconoce el comando.\n");
+            fg(trozos, listProc, searchList);
         }
     }
 }
