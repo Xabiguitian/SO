@@ -43,11 +43,9 @@ void cmd_setUid(char *trozos[]) {
     uid = (uid_t) atoi(trozos[1]);
   }
 
-  if (setuid(uid) == -1) {
+  if (setuid(uid) == -1)
     perror("Imposible cambiar credencial");
-  } else {
-    return;
-  }
+
 }
 
 
